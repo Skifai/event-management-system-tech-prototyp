@@ -48,11 +48,11 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
 
-#      - name: 📊 Generate Test Coverage Report
-#        run: mvn jacoco:report
+      - name: 📊 Generate Test Coverage Report
+        run: mvn jacoco:report
 
-#      - name: ✅ Check Test Coverage (min 50%)
-#        run: mvn jacoco:check
+      - name: ✅ Check Test Coverage (min 50%)
+        run: mvn jacoco:check
 
       - name: 📦 Upload JAR artifact
         uses: actions/upload-artifact@v4
@@ -61,12 +61,12 @@ jobs:
           path: target/*.jar
           retention-days: 5
 
-#      - name: 📈 Upload Test Coverage
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: coverage-report
-#          path: target/site/jacoco/
-#          retention-days: 30
+      - name: 📈 Upload Test Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: target/site/jacoco/
+          retention-days: 30
 
   # Job 2: Docker Image Build (Development - Temurin)
   docker-dev:
