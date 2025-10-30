@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Helfer {
 
+    // Just some Comment to Commit
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
