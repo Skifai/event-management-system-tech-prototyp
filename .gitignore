@@ -56,3 +56,11 @@ out/
 
 # Docker
 *.pid
+
+# Vaadin Frontend
+node_modules/
+frontend/generated/
+frontend/styles/generated/
+pnpmfile.cjs
+package-lock.json
+pnpm-lock.yaml
