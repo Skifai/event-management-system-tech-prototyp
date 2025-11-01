@@ -14,11 +14,6 @@ class EventManagementSystemApplicationTests {
     }
 
     @Test
-    void failingTest() {
-        Assertions.fail("This should fail");
-    }
-
-    @Test
     void successfulTest() {
         Assertions.assertThat(true).isTrue();
     }
