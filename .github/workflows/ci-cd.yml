@@ -28,7 +28,6 @@ jobs:
       SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/eventmanagement_test
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_PROFILES_ACTIVE: ci
       MAVEN_OPTS: -Xmx1024m
 
     steps:
@@ -65,7 +64,7 @@ jobs:
 
       - name: Build and run tests
         run: |
-          mvn -B -U test -Dspring.profiles.active=ci
+          mvn -B -U test
 
 #  # Job 2: Docker Image Build (Development - Temurin)
 #  docker-dev:
