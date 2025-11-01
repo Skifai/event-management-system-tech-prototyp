@@ -1,6 +1,13 @@
-target/
 .idea/
 .git/
 *.iml
 *.log
 .env
+node_modules/
+.github/
+.gitignore
+.gitattributes
+docker-compose.yml
+Dockerfile
+Dockerfile.dev
+# Note: target/ is NOT ignored because we need the JAR file for the app container
