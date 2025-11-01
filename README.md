@@ -18,19 +18,36 @@ The easiest way to run the application is using Docker Compose, which will start
 
 - Docker
 - Docker Compose
+- Java 21 (for building the JAR)
+- Maven or Maven Wrapper (./mvnw)
 
 ### Quick Start
 
-1. Clone the repository
-2. Navigate to the project directory
-3. Run the following command:
+**Option 1: Using the helper script (Recommended)**
 
 ```bash
-docker-compose up --build
+chmod +x build-and-run.sh
+./build-and-run.sh
+```
+
+**Option 2: Manual steps**
+
+1. Clone the repository
+2. Navigate to the project directory
+3. Build the JAR file:
+
+```bash
+./mvnw clean package -DskipTests
+```
+
+4. Start the containers:
+
+```bash
+docker compose up --build
 ```
 
 This will:
-- Build the application Docker image
+- Use the pre-built JAR from the target/ directory
 - Start a PostgreSQL database container
 - Start the application container
 - Expose the application on http://localhost:8080
@@ -40,13 +57,13 @@ This will:
 To stop the application and database:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 To stop and remove all data:
 
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Running Locally (without Docker)
