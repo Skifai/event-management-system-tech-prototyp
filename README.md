@@ -10,60 +10,42 @@ A Spring Boot application for managing events, built with Vaadin UI framework an
 - PostgreSQL
 - Docker & Docker Compose
 
-## Running with Docker
+## Running with Docker (Recommended)
 
 The easiest way to run the application is using Docker Compose, which will start both the application and the database.
 
-### Prerequisites
-
-- Docker
-- Docker Compose
-- Java 21 (for building the JAR)
-- Maven or Maven Wrapper (./mvnw)
-
 ### Quick Start
-
-**Option 1: Using the helper script (Recommended)**
 
 ```bash
 chmod +x build-and-run.sh
 ./build-and-run.sh
 ```
 
-**Option 2: Manual steps**
+This script will build the application and start both the application and database containers.
 
-1. Clone the repository
-2. Navigate to the project directory
-3. Build the JAR file:
+**For detailed Docker instructions**, see [DOCKER.md](DOCKER.md) which includes:
+- Complete setup guide
+- Troubleshooting tips
+- Development workflow
+- Production considerations
+- Data backup and restore
+
+### Manual Docker Setup
+
+If you prefer manual steps:
 
 ```bash
+# Build the application
 ./mvnw clean package -DskipTests
-```
 
-4. Start the containers:
+# Start containers
+docker compose up --build -d
 
-```bash
-docker compose up --build
-```
+# View logs
+docker compose logs -f
 
-This will:
-- Use the pre-built JAR from the target/ directory
-- Start a PostgreSQL database container
-- Start the application container
-- Expose the application on http://localhost:8080
-
-### Stopping the Application
-
-To stop the application and database:
-
-```bash
+# Stop containers
 docker compose down
-```
-
-To stop and remove all data:
-
-```bash
-docker compose down -v
 ```
 
 ## Running Locally (without Docker)
