@@ -4,3 +4,11 @@ target/
 *.iml
 *.log
 .env
+node_modules/
+.mvn/wrapper/maven-wrapper.jar
+.github/
+*.md
+.gitignore
+.gitattributes
+docker-compose.yml
+Dockerfile*
