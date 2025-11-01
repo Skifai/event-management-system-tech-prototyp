@@ -21,9 +21,8 @@ if ! docker compose version &> /dev/null; then
 fi
 
 echo "Step 1: Building application JAR..."
-# Check if mvnw exists
+# Check if mvnw exists and use it, otherwise fall back to mvn
 if [ -f "./mvnw" ]; then
-    chmod +x ./mvnw
     ./mvnw clean package -DskipTests
 else
     echo "Maven wrapper not found, trying mvn..."
