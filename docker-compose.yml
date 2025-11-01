@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   postgresdb:
-    image: postgres:latest
+    image: postgres:17-alpine
     container_name: event-management-db-container
     restart: unless-stopped
     environment:
