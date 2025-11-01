@@ -65,7 +65,7 @@ jobs:
 
       - name: Build and run tests
         run: |
-          mvn -B -U test
+          mvn -B -U test -Dspring.profiles.active=ci
 
 #  # Job 2: Docker Image Build (Development - Temurin)
 #  docker-dev:
