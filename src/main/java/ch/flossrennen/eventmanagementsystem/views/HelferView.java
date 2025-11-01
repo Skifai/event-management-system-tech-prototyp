@@ -15,6 +15,7 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.Route;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Route("helfer")
 @Slf4j
@@ -149,6 +150,9 @@ public class HelferView extends VerticalLayout {
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         } catch (ValidationException e) {
             Notification notification = Notification.show("Bitte füllen Sie alle erforderlichen Felder aus");
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (DataIntegrityViolationException e) {
+            Notification notification = Notification.show("Diese E-Mail-Adresse wird bereits verwendet");
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
