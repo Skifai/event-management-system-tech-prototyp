@@ -1,5 +1,6 @@
 package ch.flossrennen.eventmanagementsystem.views;
 
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -19,7 +20,11 @@ public class MainView extends VerticalLayout {
 
         Paragraph subtitle = new Paragraph("Von Handarbeit zu Klickarbeit - smarte Planung für das Flossrennen");
 
+        Anchor helferLink = new Anchor("helfer", "Helferverwaltung");
+        helferLink.getStyle().set("font-size", "1.2em");
+        helferLink.getStyle().set("margin-top", "20px");
+
         //Some Comment
-        add(title, subtitle);
+        add(title, subtitle, helferLink);
     }
 }
