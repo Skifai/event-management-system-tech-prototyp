@@ -19,6 +19,7 @@ public class MainView extends VerticalLayout {
 
         Paragraph subtitle = new Paragraph("Von Handarbeit zu Klickarbeit - smarte Planung für das Flossrennen");
 
+        //Some Comment
         add(title, subtitle);
     }
 }
