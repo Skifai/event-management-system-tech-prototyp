@@ -2,6 +2,8 @@ package ch.flossrennen.eventmanagementsystem.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class HelferTest {
@@ -22,13 +24,17 @@ class HelferTest {
 
     @Test
     void testHelferAllArgsConstructor() {
-        Helfer helfer = new Helfer(1L, "Anna", "Schmidt", "anna.schmidt@example.com", "9876543210");
+        Ressort ressort = new Ressort();
+        ressort.setName("Küche");
+        
+        Helfer helfer = new Helfer(1L, "Anna", "Schmidt", "anna.schmidt@example.com", "9876543210", ressort, new HashSet<>());
 
         assertThat(helfer.getId()).isEqualTo(1L);
         assertThat(helfer.getVorname()).isEqualTo("Anna");
         assertThat(helfer.getNachname()).isEqualTo("Schmidt");
         assertThat(helfer.getEmail()).isEqualTo("anna.schmidt@example.com");
         assertThat(helfer.getTelefon()).isEqualTo("9876543210");
+        assertThat(helfer.getRessort()).isEqualTo(ressort);
     }
 
     @Test
@@ -40,12 +46,16 @@ class HelferTest {
         assertThat(helfer.getNachname()).isNull();
         assertThat(helfer.getEmail()).isNull();
         assertThat(helfer.getTelefon()).isNull();
+        assertThat(helfer.getRessort()).isNull();
     }
 
     @Test
     void testHelferEquality() {
-        Helfer helfer1 = new Helfer(1L, "Max", "Mustermann", "max@example.com", "123");
-        Helfer helfer2 = new Helfer(1L, "Max", "Mustermann", "max@example.com", "123");
+        Ressort ressort = new Ressort();
+        ressort.setName("Küche");
+        
+        Helfer helfer1 = new Helfer(1L, "Max", "Mustermann", "max@example.com", "123", ressort, new HashSet<>());
+        Helfer helfer2 = new Helfer(1L, "Max", "Mustermann", "max@example.com", "123", ressort, new HashSet<>());
 
         assertThat(helfer1).isEqualTo(helfer2);
         assertThat(helfer1.hashCode()).isEqualTo(helfer2.hashCode());
@@ -53,7 +63,7 @@ class HelferTest {
 
     @Test
     void testHelferToString() {
-        Helfer helfer = new Helfer(1L, "Max", "Mustermann", "max@example.com", "123");
+        Helfer helfer = new Helfer(1L, "Max", "Mustermann", "max@example.com", "123", null, new HashSet<>());
         String toString = helfer.toString();
 
         assertThat(toString).contains("Max");
