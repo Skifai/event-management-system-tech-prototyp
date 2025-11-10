@@ -28,6 +28,11 @@ public class MainView extends VerticalLayout {
         linksLayout.setPadding(false);
         linksLayout.setAlignItems(Alignment.CENTER);
         
+        Anchor dashboardLink = new Anchor("dashboard", "Dashboard");
+        dashboardLink.getStyle().set("font-size", "1.2em");
+        dashboardLink.getStyle().set("margin", "5px");
+        dashboardLink.getStyle().set("font-weight", "bold");
+        
         Anchor ressortLink = new Anchor("ressorts", "Ressortverwaltung");
         ressortLink.getStyle().set("font-size", "1.1em");
         ressortLink.getStyle().set("margin", "5px");
@@ -44,7 +49,7 @@ public class MainView extends VerticalLayout {
         einsatzLink.getStyle().set("font-size", "1.1em");
         einsatzLink.getStyle().set("margin", "5px");
         
-        linksLayout.add(ressortLink, helferLink, schichtLink, einsatzLink);
+        linksLayout.add(dashboardLink, ressortLink, helferLink, schichtLink, einsatzLink);
 
         add(title, subtitle, modulesTitle, linksLayout);
     }
