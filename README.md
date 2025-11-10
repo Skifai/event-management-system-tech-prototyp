@@ -2,6 +2,8 @@
 
 Ein vollständiges Spring Boot-basiertes Event Management System für die Verwaltung von Helfern, Einsätzen, Schichten und Ressorts beim Flossrennen-Event.
 
+[![CI/CD Pipeline](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml)
+
 ## Funktionsübersicht
 
 ### Implementierte Anforderungen
@@ -251,9 +253,25 @@ services:
 - Integration Tests mit `@DataJpaTest` in `src/test/java/.../repository/`
 - Testdatenbank: H2 in-memory
 
+## CI/CD Pipeline
+
+Das Projekt verwendet GitHub Actions für Continuous Integration und Continuous Delivery.
+
+**Pipeline-Status**: [![CI/CD Pipeline](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml)
+
+### Automatische Build & Test
+- Wird bei jedem Push und Pull Request ausgeführt
+- Verwendet H2 in-memory Database für Tests (keine PostgreSQL-Abhängigkeit)
+- Generiert JaCoCo Test-Coverage Reports
+- Erstellt JAR-Artefakte für `main` und `develop` Branches
+
+**Detaillierte Informationen**: Siehe [CI-CD.md](CI-CD.md) für vollständige Pipeline-Dokumentation
+
 ## Dokumentation
 
-- Siehe [DOCKER.md](DOCKER.md) für Docker-spezifische Anweisungen
+- [DOCKER.md](DOCKER.md) - Docker-spezifische Anweisungen
+- [CI-CD.md](CI-CD.md) - CI/CD Pipeline Dokumentation
+- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Vollständige Implementierungsübersicht
 - JavaDoc in Quellcode
 - Architektur-Diagramme: (TBD)
 
