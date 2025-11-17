@@ -10,6 +10,8 @@ jobs:
   package:
     name: Package Application
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository

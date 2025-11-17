@@ -21,6 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     # Uncomment this line to enable the workflow
     if: false
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: 📥 Checkout code
