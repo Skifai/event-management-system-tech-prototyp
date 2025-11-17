@@ -1,0 +1,36 @@
+name: Package - Create JAR Artifact
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  package:
+    name: Package Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: 'maven'
+
+      - name: Run tests
+        run: mvn -B -U clean test
+
+      - name: Package application
+        run: mvn -B -DskipTests package
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-jar
+          path: target/*.jar
+          retention-days: 7
