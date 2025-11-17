@@ -2,7 +2,8 @@
 
 Ein vollständiges Spring Boot-basiertes Event Management System für die Verwaltung von Helfern, Einsätzen, Schichten und Ressorts beim Flossrennen-Event.
 
-[![CI/CD Pipeline](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml)
+[![CI - Build and Test](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci.yml)
+[![Package - Create JAR Artifact](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/package.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/package.yml)
 
 ## Funktionsübersicht
 
@@ -392,9 +393,17 @@ services:
 
 ## CI/CD Pipeline
 
-Das Projekt verwendet GitHub Actions für Continuous Integration und Continuous Delivery.
+Das Projekt verwendet GitHub Actions für Continuous Integration und Continuous Delivery. Die Pipeline ist in mehrere fokussierte Workflows aufgeteilt:
 
-**Pipeline-Status**: [![CI/CD Pipeline](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml)
+**Pipeline-Status**: 
+- [![CI - Build and Test](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci.yml)
+- [![Package - Create JAR Artifact](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/package.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/package.yml)
+
+### Workflows
+1. **CI Workflow** (`ci.yml`) - Build & Test bei jedem Push/PR
+2. **Package Workflow** (`package.yml`) - JAR-Erstellung für `main` und `develop`
+3. **Docker Dev Workflow** (`docker-dev.yml`) - Development Docker Images (optional, deaktiviert)
+4. **Docker Prod Workflow** (`docker-prod.yml`) - Production Native Images (optional, deaktiviert)
 
 ### Automatische Build & Test
 - Wird bei jedem Push und Pull Request ausgeführt

@@ -2,15 +2,18 @@
 
 ## Overview
 
-This project uses GitHub Actions for continuous integration and continuous delivery. The pipeline automatically builds, tests, and optionally packages the application on every push and pull request.
+This project uses GitHub Actions for continuous integration and continuous delivery. The pipeline is split into multiple focused workflows for better maintainability and clarity.
 
 ## Pipeline Structure
 
-### Jobs
+The CI/CD pipeline consists of **4 separate workflow files**:
 
-#### 1. Build Job (Always runs)
+### 1. CI Workflow (`ci.yml`) - Always runs
+**File**: `.github/workflows/ci.yml`
+
 - **Trigger**: On every push and pull request to any branch
 - **Purpose**: Build and test the application
+- **Status Badge**: [![CI - Build and Test](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci.yml)
 - **Steps**:
   1. Checkout repository
   2. Set up Java 21 (Temurin distribution)
@@ -24,22 +27,65 @@ This project uses GitHub Actions for continuous integration and continuous deliv
 - Faster test execution
 - Consistent environment across local development and CI
 
-#### 2. Package Job (Conditional)
-- **Trigger**: Only on `main` or `develop` branches after successful build
+### 2. Package Workflow (`package.yml`) - Conditional
+**File**: `.github/workflows/package.yml`
+
+- **Trigger**: Only on `main` or `develop` branches
 - **Purpose**: Create deployable JAR artifact
+- **Status Badge**: [![Package - Create JAR Artifact](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/package.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/package.yml)
 - **Steps**:
   1. Checkout repository
   2. Set up Java 21
-  3. Package application: `mvn -B -DskipTests clean package`
-  4. Upload JAR artifact (retained for 7 days)
+  3. Run tests: `mvn -B -U clean test`
+  4. Package application: `mvn -B -DskipTests package`
+  5. Upload JAR artifact (retained for 7 days)
 
-#### 3. Docker Jobs (Commented out - Optional)
-Docker image building is prepared but commented out. To enable:
-- Uncomment the `docker-dev` or `docker-native` job
-- Configure Docker Hub secrets:
-  - `DOCKER_USERNAME`
-  - `DOCKER_PASSWORD`
-- Set the `IMAGE_NAME` environment variable
+### 3. Docker Dev Workflow (`docker-dev.yml`) - Optional
+**File**: `.github/workflows/docker-dev.yml`
+
+- **Trigger**: Disabled by default (configure to run on `develop` branch)
+- **Purpose**: Build and push development Docker image
+- **Status**: Disabled - To enable:
+  1. Uncomment the `on:` trigger in the workflow file
+  2. Configure Docker Hub secrets:
+     - `DOCKER_USERNAME`
+     - `DOCKER_PASSWORD`
+  3. Set the `IMAGE_NAME` environment variable
+  4. Remove the `if: false` condition
+- **Steps**:
+  1. Checkout code
+  2. Set up Java 21 and build JAR
+  3. Set up Docker Buildx
+  4. Log in to Docker Hub
+  5. Build and push development image with tags
+
+### 4. Docker Prod Workflow (`docker-prod.yml`) - Optional
+**File**: `.github/workflows/docker-prod.yml`
+
+- **Trigger**: Disabled by default (configure to run on `main` branch)
+- **Purpose**: Build and push production native image with GraalVM
+- **Status**: Disabled - To enable:
+  1. Uncomment the `on:` trigger in the workflow file
+  2. Configure Docker Hub secrets:
+     - `DOCKER_USERNAME`
+     - `DOCKER_PASSWORD`
+  3. Set the `IMAGE_NAME` environment variable
+  4. Remove the `if: false` condition
+- **Steps**:
+  1. Checkout code
+  2. Set up GraalVM
+  3. Build native image
+  4. Set up Docker Buildx
+  5. Log in to Docker Hub
+  6. Build and push production image with tags
+
+## Benefits of Separate Workflows
+
+✅ **Separation of Concerns**: Each workflow has a single, clear purpose
+✅ **Easier Maintenance**: Smaller files are easier to understand and modify
+✅ **Better Triggers**: Each workflow can have appropriate triggers
+✅ **Selective Execution**: Can run specific workflows independently
+✅ **Clearer Pipeline Status**: Each workflow shows its specific status
 
 ## Configuration
 
@@ -150,45 +196,88 @@ View locally: `target/site/jacoco/index.html` after running tests
 
 ## Extending the Pipeline
 
-### Enable Docker Builds
+### Enable Docker Development Builds
 
-1. Uncomment desired Docker job in `.github/workflows/ci-cd.yml`
-2. Add Docker Hub secrets to GitHub repository settings
-3. Set IMAGE_NAME environment variable:
-```yaml
-env:
-  IMAGE_NAME: yourusername/event-management-system
-```
+1. Open `.github/workflows/docker-dev.yml`
+2. Uncomment the `on:` trigger section at the top
+3. Remove the `if: false` condition from the job
+4. Add Docker Hub secrets to GitHub repository settings:
+   - `DOCKER_USERNAME`
+   - `DOCKER_PASSWORD`
+5. Update the `IMAGE_NAME` environment variable:
+   ```yaml
+   env:
+     IMAGE_NAME: yourusername/event-management-system
+   ```
+
+### Enable Docker Production Builds
+
+1. Open `.github/workflows/docker-prod.yml`
+2. Uncomment the `on:` trigger section at the top
+3. Remove the `if: false` condition from the job
+4. Add Docker Hub secrets to GitHub repository settings:
+   - `DOCKER_USERNAME`
+   - `DOCKER_PASSWORD`
+5. Update the `IMAGE_NAME` environment variable:
+   ```yaml
+   env:
+     IMAGE_NAME: yourusername/event-management-system
+   ```
 
 ### Add SonarCloud Analysis
 
-Uncomment and configure the `code-quality` job:
+Create a new workflow file `.github/workflows/code-quality.yml`:
 ```yaml
-code-quality:
-  name: Code Quality Analysis
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+name: Code Quality Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  code-quality:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 ```
 
-### Deploy to Production
+### Add Deployment Pipeline
 
-Add deployment job after successful package:
+Create a new workflow file `.github/workflows/deploy.yml`:
 ```yaml
-deploy:
-  needs: package
-  runs-on: ubuntu-latest
-  if: github.ref == 'refs/heads/main'
-  steps:
-    - name: Deploy to Production
-      # Add your deployment steps
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: package  # Note: This would need to be coordinated with package.yml
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: application-jar
+      - name: Deploy to Production
+        # Add your deployment steps here
+        run: echo "Deploy to production server"
 ```
 
 ## Performance
