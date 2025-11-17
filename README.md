@@ -1,108 +1,284 @@
-# Event Management System
+# Event Management System - Flossrennen
 
-A Spring Boot application for managing events, built with Vaadin UI framework and PostgreSQL database.
+Ein vollständiges Spring Boot-basiertes Event Management System für die Verwaltung von Helfern, Einsätzen, Schichten und Ressorts beim Flossrennen-Event.
 
-## Technologies
+[![CI/CD Pipeline](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml)
 
-- Java 21
-- Spring Boot 3.5.7
-- Vaadin 24.9.4
-- PostgreSQL
-- Docker & Docker Compose
+## Funktionsübersicht
 
-## Running with Docker (Recommended)
+### Implementierte Anforderungen
 
-The easiest way to run the application is using Docker Compose, which will start both the application and the database.
+#### Muss-Anforderungen (MFA)
+- ✅ **MFA.01 - Helferverwaltung**: Vollständige CRUD-Operationen für Helfer mit Stammressort-Zuordnung
+- ✅ **MFA.02 - Einsatzplanung**: Erstellen und Verwalten von Einsätzen mit Zeitfenstern, Ressorts und Helfer-Zuordnung
+- ✅ **MFA.03 - Validierung**: Automatische Prüfung gegen Doppelzuweisungen von Helfern im gleichen Zeitraum
+- ✅ **MFA.04 - Rollen und Rechtekonzept**: Benutzer-Entity mit Rollen (Administrator, Ressortleiter) und BCrypt-Verschlüsselung
+- ✅ **MFA.05 - Datenbankintegration**: PostgreSQL mit JPA/Hibernate, 3. Normalform
+- ⏳ **MFA.06 - Dokumentation**: In Arbeit
+- ✅ **MFA.07 - Schichtverwaltung**: Organisation von Einsätzen in Schichten mit Zeitfenstern
+- ✅ **MFA.08 - Ressortmanagement**: Verwaltung von Ressorts mit Attributen
+- ✅ **MFA.09 - Suchfunktion**: SearchService mit Filterung nach Ressort, Datum, Helfer, Status
 
-### Quick Start
+#### Kann-Anforderungen (KFA)
+- ⏳ **KFA.01 - Auswertungen**: In Planung (PDF/Excel Export)
+- ✅ **KFA.02 - Import/Export**: CSV-Import und -Export für Helferdaten implementiert
+- ✅ **KFA.03 - Dashboard**: Übersichtsseite mit Kennzahlen pro Ressort und Status
+- ⏳ **KFA.04 - Änderungshistorie**: Nicht implementiert
+
+#### Optionale Anforderungen (OFA)
+- ⏳ **OFA.01 - Kommunikationsfunktionen**: Nicht implementiert
+- ⏳ **OFA.02 - Qualifikationsverwaltung**: Nicht implementiert
+- ⏳ **OFA.03 - Kalendersynchronisation**: Nicht implementiert
+- ⏳ **OFA.04 - Mobile Ansicht**: Vaadin ist responsive-ready
+- ✅ **OFA.05 - Containerbasiertes Deployment**: Docker Compose Setup vorhanden
+
+## Technologien
+
+- **Java 21** - Programmiersprache
+- **Spring Boot 3.5.7** - Backend-Framework
+- **Vaadin 24.9.4** - UI-Framework (serverseitig)
+- **PostgreSQL 17** - Relationale Datenbank
+- **H2** - In-Memory Datenbank für Tests
+- **Docker & Docker Compose** - Containerisierung
+- **JUnit 5 & Mockito** - Testing Framework
+- **JaCoCo** - Test Coverage
+- **Lombok** - Reduzierung von Boilerplate-Code
+
+## Architektur
+
+Das System folgt einer klassischen 3-Schichten-Architektur:
+
+### Schichten
+1. **Presentation Layer** (Views): Vaadin-basierte Web-UI
+2. **Business Logic Layer** (Services): Geschäftslogik und Validierung
+3. **Data Access Layer** (Repositories): JPA/Hibernate Datenzugriff
+
+### Datenmodell (3NF)
+
+**Entitäten:**
+- `Helfer` - Helfer mit Kontaktdaten und Stammressort
+- `Ressort` - Organisationseinheiten (z.B. Küche, Bar, Sicherheit)
+- `Schicht` - Zeitfenster für Einsätze
+- `Einsatz` - Konkrete Arbeitseinsätze mit Zeit, Ort und zugewiesenen Helfern
+- `Benutzer` - Systembenutzer mit Rollen
+
+**Beziehungen:**
+- Helfer ↔ Ressort (n:1) - Stammressort-Zuordnung
+- Helfer ↔ Einsatz (n:m) - Helfer-Zuweisungen
+- Einsatz ↔ Ressort (n:1) - Ressort-Zuordnung
+- Einsatz ↔ Schicht (n:1) - Schicht-Zuordnung
+- Benutzer ↔ Ressort (n:1) - Ressortleiter-Zuordnung
+
+## Installation und Ausführung
+
+### Voraussetzungen
+- Docker & Docker Compose (empfohlen)
+- ODER: Java 21 + Maven + PostgreSQL
+
+### Option 1: Mit Docker (Empfohlen)
 
 ```bash
+# Repository klonen
+git clone <repository-url>
+cd event-management-system-tech-prototyp
+
+# Anwendung bauen und starten
 chmod +x build-and-run.sh
 ./build-and-run.sh
-```
 
-This script will build the application and start both the application and database containers.
-
-**For detailed Docker instructions**, see [DOCKER.md](DOCKER.md) which includes:
-- Complete setup guide
-- Troubleshooting tips
-- Development workflow
-- Production considerations
-- Data backup and restore
-
-### Manual Docker Setup
-
-If you prefer manual steps:
-
-```bash
-# Build the application
+# Alternativ manuell:
 ./mvnw clean package -DskipTests
-
-# Start containers
 docker compose up --build -d
-
-# View logs
-docker compose logs -f
-
-# Stop containers
-docker compose down
 ```
 
-## Running Locally (without Docker)
+Die Anwendung ist dann unter http://localhost:8080 erreichbar.
 
-### Prerequisites
-
-- Java 21
-- Maven 3.6+
-- PostgreSQL database running on localhost:5432
-
-### Steps
-
-1. Start PostgreSQL and create a database named `eventmanagement`
-2. Run the application:
+### Option 2: Lokale Ausführung
 
 ```bash
+# PostgreSQL starten und Datenbank erstellen
+createdb eventmanagement
+
+# Anwendung starten
 ./mvnw spring-boot:run
 ```
 
-3. Access the application at http://localhost:8080
+## Verwendung
 
-## Development
+### Module
 
-### Building the Application
+1. **Dashboard** (`/dashboard`)
+   - Übersicht über alle Kennzahlen
+   - Anzahl Einsätze, Helfer, Ressorts, Schichten
+   - Status-Übersicht (Offen, In Planung, Vollständig)
+   - Helfer-Statistiken pro Ressort
 
-```bash
-./mvnw clean package
-```
+2. **Ressortverwaltung** (`/ressorts`)
+   - Anlegen, Bearbeiten, Löschen von Ressorts
+   - Attribute: Name, Beschreibung, Zuständigkeiten, Kontaktperson
 
-### Running Tests
+3. **Helferverwaltung** (`/helfer`)
+   - CRUD-Operationen für Helfer
+   - CSV-Import und -Export (via CsvService)
+   - Stammressort-Zuordnung
 
+4. **Schichtverwaltung** (`/schichten`)
+   - Anlegen von Schichten mit Zeitfenstern
+   - Gruppierung von Einsätzen
+
+5. **Einsatzplanung** (`/einsaetze`)
+   - Erstellen von Einsätzen
+   - Helfer-Zuweisung mit automatischer Konfliktprüfung
+   - Status-Tracking (Offen, In Planung, Vollständig, Abgeschlossen)
+
+## Testing
+
+### Tests ausführen
 ```bash
 ./mvnw test
 ```
 
-## Configuration
+### Test-Coverage Report
+```bash
+./mvnw clean test jacoco:report
+# Report ansehen: target/site/jacoco/index.html
+```
 
-The application can be configured through environment variables:
+### Aktuelle Test-Abdeckung
+- **36 Unit Tests** (alle bestanden)
+- **Service Layer**: 49% Coverage
+- **Model Layer**: 100% Coverage
+- **Gesamt**: 11% (Views nicht getestet)
 
-- `SPRING_DATASOURCE_URL` - Database URL (default: jdbc:postgresql://localhost:5432/eventmanagement)
-- `SPRING_DATASOURCE_USERNAME` - Database username (default: postgres)
-- `SPRING_DATASOURCE_PASSWORD` - Database password (default: postgres)
-- `SPRING_JPA_HIBERNATE_DDL_AUTO` - Hibernate DDL mode (default: update)
+### Test-Kategorien
+- **Model Tests**: Entitäts-Tests (HelferTest)
+- **Service Tests**: Business-Logik Tests
+  - EinsatzServiceTest: Validierung, Konfliktprüfung (7 Tests)
+  - CsvServiceTest: Import/Export (4 Tests)
+  - RessortServiceTest: CRUD-Operationen (5 Tests)
+  - SchichtServiceTest: Zeitvalidierung (2 Tests)
+- **Repository Tests**: Datenzugriff-Tests (HelferRepositoryTest)
 
-## Docker Images
+## Konfiguration
 
-The project includes multiple Dockerfiles for different purposes:
+### Umgebungsvariablen
 
-- `Dockerfile.app` - Multi-stage build for production (used by docker-compose)
-- `Dockerfile` - GraalVM native image build (for optimal performance)
-- `Dockerfile.dev` - Development image with debug support
+```bash
+# Datenbank
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/eventmanagement
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
 
-## Health Check
+# JPA
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
+```
 
-The application exposes a health endpoint at:
-- http://localhost:8080/actuator/health
+### application.properties
 
-## License
+Siehe `src/main/resources/application.properties` für alle Konfigurationsoptionen.
+
+## Docker
+
+### Images
+- `Dockerfile.app` - Multi-Stage Build für Production (verwendet von docker-compose)
+- `Dockerfile` - GraalVM Native Image (optional, für optimale Performance)
+- `Dockerfile.dev` - Development Image mit Debug-Support
+
+### Docker Compose
+```yaml
+services:
+  postgresdb:  # PostgreSQL Datenbank
+    image: postgres:17-alpine
+    ports: ["5432:5432"]
+    
+  app:         # Spring Boot Anwendung
+    build: .
+    ports: ["8080:8080"]
+    depends_on: [postgresdb]
+```
+
+## API / Services
+
+### Key Services
+
+**EinsatzService**
+- `assignHelfer(einsatzId, helfer)` - Helfer zuweisen mit Konfliktprüfung
+- `isHelferAvailable(helfer, start, end)` - Verfügbarkeit prüfen
+- `findOverlappingEinsaetze(...)` - Überschneidungen finden
+
+**CsvService**
+- `exportHelferToCsv()` - Helfer als CSV exportieren
+- `importHelferFromCsv(csvContent)` - Helfer aus CSV importieren
+
+**DashboardService**
+- `getDashboardData()` - Alle Kennzahlen abrufen
+
+**SearchService**
+- `searchEinsaetze(...)` - Einsätze nach Kriterien suchen
+
+## Sicherheit
+
+- **Passwort-Verschlüsselung**: BCrypt (via Spring Security)
+- **Benutzer-Rollen**: Administrator, Ressortleiter
+- **Authentifizierung**: Grundstruktur vorhanden, UI-Integration ausstehend
+
+## Performance
+
+- Zielwert: < 2 Sekunden Antwortzeit (NFA.02)
+- Datenbankabfragen optimiert mit JPA Fetch Strategies
+- Lazy Loading für große Collections
+
+## Bekannte Einschränkungen
+
+1. **Authentifizierung**: Noch nicht in UI integriert (permitAll)
+2. **Rollenbasierte Zugriffskontrolle**: Service-Struktur vorhanden, aber nicht aktiviert
+3. **PDF/Excel Export**: Noch nicht implementiert
+4. **Email-Benachrichtigungen**: Nicht implementiert
+5. **Qualifikationsverwaltung**: Nicht implementiert
+
+## Entwicklung
+
+### Projekt bauen
+```bash
+./mvnw clean package
+```
+
+### Development Mode
+```bash
+./mvnw spring-boot:run
+```
+
+### Tests schreiben
+- Unit Tests mit Mockito in `src/test/java/.../service/`
+- Integration Tests mit `@DataJpaTest` in `src/test/java/.../repository/`
+- Testdatenbank: H2 in-memory
+
+## CI/CD Pipeline
+
+Das Projekt verwendet GitHub Actions für Continuous Integration und Continuous Delivery.
+
+**Pipeline-Status**: [![CI/CD Pipeline](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Skifai/event-management-system-tech-prototyp/actions/workflows/ci-cd.yml)
+
+### Automatische Build & Test
+- Wird bei jedem Push und Pull Request ausgeführt
+- Verwendet H2 in-memory Database für Tests (keine PostgreSQL-Abhängigkeit)
+- Generiert JaCoCo Test-Coverage Reports
+- Erstellt JAR-Artefakte für `main` und `develop` Branches
+
+**Detaillierte Informationen**: Siehe [CI-CD.md](CI-CD.md) für vollständige Pipeline-Dokumentation
+
+## Dokumentation
+
+- [DOCKER.md](DOCKER.md) - Docker-spezifische Anweisungen
+- [CI-CD.md](CI-CD.md) - CI/CD Pipeline Dokumentation
+- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Vollständige Implementierungsübersicht
+- JavaDoc in Quellcode
+- Architektur-Diagramme: (TBD)
+
+## Lizenz
 
 [Add your license information here]
+
+## Autoren
+
+Entwickelt als technischer Prototyp für das Event Management System des Flossrennens.

@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "helfer")
 @Data
@@ -12,10 +15,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Helfer {
 
-    // Just some Comment to Commit
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, length = 100)
     private String vorname;
@@ -28,4 +30,11 @@ public class Helfer {
 
     @Column(length = 20)
     private String telefon;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stammressort_id")
+    private Ressort ressort;
+
+    @ManyToMany(mappedBy = "zugewieseneHelfer")
+    private Set<Einsatz> einsaetze = new HashSet<>();
 }

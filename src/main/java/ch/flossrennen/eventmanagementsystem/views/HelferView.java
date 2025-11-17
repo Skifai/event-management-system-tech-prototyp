@@ -1,9 +1,12 @@
 package ch.flossrennen.eventmanagementsystem.views;
 
 import ch.flossrennen.eventmanagementsystem.model.Helfer;
+import ch.flossrennen.eventmanagementsystem.model.Ressort;
 import ch.flossrennen.eventmanagementsystem.service.HelferService;
+import ch.flossrennen.eventmanagementsystem.service.RessortService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -22,6 +25,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 public class HelferView extends VerticalLayout {
 
     private final HelferService helferService;
+    private final RessortService ressortService;
     
     private final Grid<Helfer> grid = new Grid<>(Helfer.class, false);
     private final Binder<Helfer> binder = new Binder<>(Helfer.class);
@@ -30,6 +34,7 @@ public class HelferView extends VerticalLayout {
     private final TextField nachnameField = new TextField("Nachname");
     private final EmailField emailField = new EmailField("Email");
     private final TextField telefonField = new TextField("Telefon");
+    private final ComboBox<Ressort> ressortCombo = new ComboBox<>("Stammressort");
     
     private final Button saveButton = new Button("Speichern");
     private final Button cancelButton = new Button("Abbrechen");
@@ -37,8 +42,9 @@ public class HelferView extends VerticalLayout {
     
     private Helfer currentHelfer;
 
-    public HelferView(HelferService helferService) {
+    public HelferView(HelferService helferService, RessortService ressortService) {
         this.helferService = helferService;
+        this.ressortService = ressortService;
         
         setSizeFull();
         
@@ -61,6 +67,8 @@ public class HelferView extends VerticalLayout {
         grid.addColumn(Helfer::getNachname).setHeader("Nachname").setAutoWidth(true);
         grid.addColumn(Helfer::getEmail).setHeader("Email").setAutoWidth(true);
         grid.addColumn(Helfer::getTelefon).setHeader("Telefon").setAutoWidth(true);
+        grid.addColumn(h -> h.getRessort() != null ? h.getRessort().getName() : "")
+            .setHeader("Stammressort").setAutoWidth(true);
         
         grid.asSingleSelect().addValueChangeListener(event -> editHelfer(event.getValue()));
     }
@@ -77,6 +85,9 @@ public class HelferView extends VerticalLayout {
         
         telefonField.setMaxLength(20);
         
+        ressortCombo.setItems(ressortService.findAll());
+        ressortCombo.setItemLabelGenerator(Ressort::getName);
+        
         binder.forField(vornameField)
             .asRequired("Vorname ist erforderlich")
             .bind(Helfer::getVorname, Helfer::setVorname);
@@ -90,6 +101,9 @@ public class HelferView extends VerticalLayout {
         
         binder.forField(telefonField)
             .bind(Helfer::getTelefon, Helfer::setTelefon);
+        
+        binder.forField(ressortCombo)
+            .bind(Helfer::getRessort, Helfer::setRessort);
         
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(event -> saveHelfer());
@@ -106,6 +120,7 @@ public class HelferView extends VerticalLayout {
             nachnameField,
             emailField,
             telefonField,
+            ressortCombo,
             new HorizontalLayout(saveButton, cancelButton)
         );
         formLayout.setVisible(false);
