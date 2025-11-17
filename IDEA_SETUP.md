@@ -47,6 +47,8 @@ Nach dem Öffnen des Projekts stehen automatisch folgende Run Configurations zur
 
 **Zweck**: Lokale Entwicklung mit automatischem PostgreSQL-Management
 
+**Spring Profile**: Keines (Standard) oder `dev`
+
 **Was passiert beim Start**:
 1. Die Applikation prüft, ob Docker verfügbar ist
 2. Sucht nach PostgreSQL Container `event-management-db-container`
@@ -54,11 +56,19 @@ Nach dem Öffnen des Projekts stehen automatisch folgende Run Configurations zur
 4. Falls vorhanden aber gestoppt: Startet den Container
 5. Falls bereits laufend: Verwendet bestehenden Container
 6. Startet die Spring Boot Applikation mit DevTools
+7. Verwendet `application.properties` (Standard-Konfiguration)
 
 **Verwendung**:
 1. Run Configuration "Development Mode" auswählen
 2. Run (▶️) oder Debug (🐞) klicken (Shift+F10 / Shift+F9)
 3. Applikation öffnet sich automatisch im Browser: http://localhost:8080
+
+**Konfiguration (application.properties)**:
+- Server Port: `8080`
+- Vaadin: `productionMode=false` (Development-Mode)
+- Logging: `DEBUG` für SQL und Application
+- DDL Auto: `update` (Schema-Updates automatisch)
+- Browser Launch: Automatisch
 
 **Datenbank-Details**:
 - Host: `localhost`
@@ -77,11 +87,14 @@ Nach dem Öffnen des Projekts stehen automatisch folgende Run Configurations zur
 
 **Zweck**: Production-Build mit GraalVM Native Image
 
+**Spring Profile**: `prod`
+
 **Was passiert beim Start**:
 1. Baut GraalVM Native Image mit Docker (dauert 5-15 Minuten)
 2. Startet separate Production PostgreSQL auf Port 5433
 3. Startet Applikation-Container auf Port 8081
-4. Verwendet Production-Profile (`application-prod.properties`)
+4. Verwendet `application-prod.properties` (Production-Konfiguration)
+5. Setzt Environment Variable: `SPRING_PROFILES_ACTIVE=prod`
 
 **Verwendung**:
 1. Run Configuration "Production Mode (Native)" auswählen
@@ -89,11 +102,19 @@ Nach dem Öffnen des Projekts stehen automatisch folgende Run Configurations zur
 3. Warten bis Build abgeschlossen ist
 4. Applikation verfügbar unter: http://localhost:8081
 
+**Konfiguration (application-prod.properties)**:
+- Server Port: `8080` (im Container, mapped auf `8081` auf Host)
+- Vaadin: `productionMode=true` (Production-Mode)
+- Logging: `INFO` für Application, `WARN` für SQL
+- DDL Auto: `validate` (nur Schema-Validierung, keine Updates!)
+- Browser Launch: Deaktiviert
+
 **Wichtig**:
 - ⚠️ Erster Build dauert lange (5-15 Minuten)
 - ⚠️ Benötigt mindestens 4GB RAM für Docker
 - ✅ Nachfolgende Builds sind schneller (Docker Cache)
 - ✅ Verwendet separate Production-Datenbank
+- ⚠️ DatabaseStartupListener ist **deaktiviert** im prod-Profil
 
 **Production-Datenbank-Details**:
 - Host: `localhost`
@@ -248,6 +269,173 @@ docker exec -it event-management-db-prod-container psql -U postgres -d eventmana
 
 # Ähnlich wie Development, aber mit "-prod" Container-Namen
 ```
+
+## Spring Profiles Übersicht
+
+Das Projekt verwendet Spring Profiles um verschiedene Konfigurationen zu verwalten:
+
+### Verfügbare Profile
+
+#### 1. Standard / Development (kein Profil oder `dev`)
+
+**Aktivierung:**
+- Automatisch wenn kein Profil gesetzt ist
+- Explizit via: `-Dspring.profiles.active=dev`
+- Run Configuration: "Development Mode"
+
+**Properties-Datei:** `application.properties`
+
+**Eigenschaften:**
+```properties
+# Server
+server.port=8080
+
+# Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/eventmanagement
+spring.jpa.hibernate.ddl-auto=update
+
+# Vaadin
+vaadin.productionMode=false
+vaadin.launch-browser=true
+
+# Logging
+logging.level.ch.flossrennen.eventmanagement=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+```
+
+**Besonderheiten:**
+- ✅ DatabaseStartupListener **aktiv** (Auto-Start PostgreSQL)
+- ✅ DevTools für Hot-Reload
+- ✅ SQL-Logs aktiviert
+- ✅ Schema-Updates automatisch
+
+---
+
+#### 2. Production (`prod`)
+
+**Aktivierung:**
+- Via: `-Dspring.profiles.active=prod`
+- Via Environment Variable: `SPRING_PROFILES_ACTIVE=prod`
+- Run Configuration: "Production Mode (Native)"
+- Docker Compose: `docker-compose.prod.yml`
+
+**Properties-Datei:** `application-prod.properties`
+
+**Eigenschaften:**
+```properties
+# Server
+server.port=8080  # Im Container, Host-Port ist 8081
+
+# Database
+spring.datasource.url=jdbc:postgresql://localhost:5433/eventmanagement_prod
+spring.jpa.hibernate.ddl-auto=validate
+
+# Vaadin
+vaadin.productionMode=true
+vaadin.launch-browser=false
+
+# Logging
+logging.level.ch.flossrennen.eventmanagement=INFO
+logging.level.org.hibernate.SQL=WARN
+```
+
+**Besonderheiten:**
+- ❌ DatabaseStartupListener **inaktiv** (kein Auto-Start)
+- ❌ Keine DevTools
+- ❌ Minimale Logs
+- ⚠️ Schema nur validiert, nicht aktualisiert
+
+---
+
+### Profile in IDEA setzen
+
+**Option 1: Via Run Configuration (empfohlen)**
+
+1. Run → Edit Configurations...
+2. Spring Boot Configuration auswählen
+3. `Active profiles` Feld: `prod` (oder leer für Standard)
+4. Alternativ unter `Environment variables`: `SPRING_PROFILES_ACTIVE=prod`
+
+**Option 2: Via VM Options**
+
+In Run Configuration unter `VM options`:
+```
+-Dspring.profiles.active=prod
+```
+
+**Option 3: Via Environment Variable**
+
+In Run Configuration unter `Environment variables`:
+```
+SPRING_PROFILES_ACTIVE=prod
+```
+
+---
+
+### Eigenes Profil erstellen
+
+**Schritt 1:** Neue Properties-Datei erstellen
+
+```bash
+touch src/main/resources/application-mein-profil.properties
+```
+
+**Schritt 2:** Konfiguration anpassen
+
+```properties
+# Beispiel: Test-Profil mit H2 In-Memory DB
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driver-class-name=org.h2.Driver
+spring.jpa.hibernate.ddl-auto=create-drop
+```
+
+**Schritt 3:** In IDEA aktivieren
+
+Run Configuration erstellen mit `Active profiles: mein-profil`
+
+---
+
+### Profile-Spezifische Beans
+
+Sie können Beans nur für bestimmte Profile aktivieren:
+
+```java
+@Service
+@Profile("dev")
+public class DevOnlyService {
+    // Nur im Development-Profil aktiv
+}
+
+@Service
+@Profile("prod")
+public class ProductionService {
+    // Nur im Production-Profil aktiv
+}
+
+@Service
+@Profile("!prod")  // Negation
+public class NotInProductionService {
+    // In allen Profilen außer prod
+}
+```
+
+**Beispiel im Projekt:**
+
+```java
+@Component
+public class DatabaseStartupListener {
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        // Nur aktiv wenn NICHT prod-Profil
+        if (Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
+            return;
+        }
+        dockerService.ensurePostgresContainer();
+    }
+}
+```
+
+---
 
 ## Environment Variables
 

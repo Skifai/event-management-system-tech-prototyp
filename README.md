@@ -79,18 +79,138 @@ Das System folgt einer klassischen 3-Schichten-Architektur:
 
 Das Projekt enthält vorkonfigurierte IntelliJ IDEA Run Configurations für einfache Entwicklung und Produktion.
 
-**Entwicklungsmodus:**
-1. Projekt in IntelliJ IDEA öffnen
-2. Run Configuration "Development Mode" auswählen
-3. Starten (Shift+F10)
+#### Starten in IDEA - Schritt für Schritt
 
-Die Anwendung prüft automatisch ob eine PostgreSQL Docker-Instanz läuft und startet diese bei Bedarf.
+**Voraussetzungen:**
+- IntelliJ IDEA installiert (Community oder Ultimate)
+- Docker Desktop läuft (für automatisches PostgreSQL-Management)
+- Java 21 konfiguriert in IDEA
 
-**Produktionsmodus:**
-1. Run Configuration "Production Mode (Native)" auswählen
-2. Starten - erstellt GraalVM Native Image
+**Schritt 1: Projekt öffnen**
+1. IntelliJ IDEA starten
+2. `File` → `Open...`
+3. Projektverzeichnis auswählen
+4. Warten bis Maven-Import abgeschlossen ist
 
-Detaillierte Dokumentation: [.idea/runConfigurations/README.md](.idea/runConfigurations/README.md)
+**Schritt 2: Run Configuration auswählen**
+
+Die Run Configurations sind im Dropdown oben rechts in IDEA verfügbar:
+
+![Run Configuration Dropdown](docs/images/idea-run-config-dropdown.png)
+
+---
+
+#### 🔵 Development Mode (Standard-Profil)
+
+**Verwendung:**
+1. Run Configuration **"Development Mode"** aus Dropdown auswählen
+2. ▶️ Run-Button klicken **ODER** `Shift+F10` drücken
+3. Warten bis "Started EventManagementSystemApplication" im Log erscheint
+4. Browser öffnet automatisch: http://localhost:8080
+
+**Was passiert:**
+- Spring Boot startet **ohne** spezifisches Profil (verwendet `application.properties`)
+- DatabaseStartupListener prüft automatisch Docker-Verfügbarkeit
+- PostgreSQL Container wird automatisch gestartet oder erstellt:
+  - Container-Name: `event-management-db-container`
+  - Port: `5432`
+  - Database: `eventmanagement`
+- Vaadin läuft im Development-Mode (Hot-Reload aktiv)
+- SQL-Logs werden in Console angezeigt
+
+**Datenbank-Details:**
+```properties
+Host: localhost
+Port: 5432
+Database: eventmanagement
+Username: postgres
+Password: postgres
+```
+
+**Hinweis:** Falls Docker nicht läuft, startet die App trotzdem, erwartet aber eine externe PostgreSQL auf Port 5432.
+
+---
+
+#### 🟢 Production Mode (prod-Profil mit GraalVM)
+
+**Verwendung:**
+1. Run Configuration **"Production Mode (Native)"** aus Dropdown auswählen
+2. ▶️ Run-Button klicken
+3. **Warten** (erster Build dauert 5-15 Minuten für GraalVM Native Image)
+4. Nach Abschluss: http://localhost:8081
+
+**Was passiert:**
+- Docker baut GraalVM Native Image (siehe `Dockerfile`)
+- Startet **separate** Production-PostgreSQL auf Port `5433`
+- Startet App-Container mit `SPRING_PROFILES_ACTIVE=prod`
+- Verwendet `application-prod.properties`:
+  - Database: `eventmanagement_prod` (Port 5433)
+  - Vaadin Production-Mode (kein Hot-Reload)
+  - Minimal-Logging (INFO statt DEBUG)
+  - `hibernate.ddl-auto=validate` (statt update)
+
+**Datenbank-Details:**
+```properties
+Host: localhost
+Port: 5433  # NICHT 5432!
+Database: eventmanagement_prod
+Username: postgres
+Password: postgres
+```
+
+**Wichtig:** 
+- Production läuft auf Port **8081** (Development auf 8080)
+- Beide Modi können parallel laufen (unterschiedliche Ports und Datenbanken)
+
+---
+
+#### ⚙️ Manueller Start mit eigenem Profil
+
+Falls Sie ein eigenes Profil verwenden möchten:
+
+**Via Run Configuration bearbeiten:**
+1. Run Configuration Dropdown → `Edit Configurations...`
+2. Neue Spring Boot Configuration erstellen
+3. Main class: `ch.flossrennen.eventmanagementsystem.EventManagementSystemApplication`
+4. Active profiles: `ihr-profil` (z.B. `dev`, `prod`, `test`)
+5. Environment variables (optional):
+   ```
+   SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/ihre_db
+   SPRING_DATASOURCE_USERNAME=ihr_user
+   SPRING_DATASOURCE_PASSWORD=ihr_passwort
+   ```
+
+**Via Maven:**
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+**Via JAR:**
+```bash
+java -jar -Dspring.profiles.active=prod target/event-management-system-0.0.1-SNAPSHOT.jar
+```
+
+---
+
+#### 📋 Übersicht: Profile und Unterschiede
+
+| Eigenschaft | Development (kein Profil) | Production (prod) |
+|-------------|---------------------------|-------------------|
+| **Profile** | Standard / `dev` | `prod` |
+| **Run Config** | "Development Mode" | "Production Mode (Native)" |
+| **App-Port** | 8080 | 8081 |
+| **DB-Port** | 5432 | 5433 |
+| **Database** | `eventmanagement` | `eventmanagement_prod` |
+| **Auto-Start DB** | ✅ Ja (Docker) | ❌ Nein (manuell via docker-compose) |
+| **Hot-Reload** | ✅ Ja (DevTools) | ❌ Nein |
+| **Vaadin Mode** | Development | Production |
+| **SQL Logs** | ✅ DEBUG | ⚠️ WARN |
+| **DDL Auto** | `update` | `validate` |
+| **Build-Typ** | JAR | GraalVM Native Image |
+
+---
+
+Detaillierte Dokumentation: [IDEA_SETUP.md](IDEA_SETUP.md) und [.idea/runConfigurations/README.md](.idea/runConfigurations/README.md)
 
 ### Option 2: Mit Docker (Empfohlen)
 
