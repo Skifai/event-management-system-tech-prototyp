@@ -309,7 +309,80 @@ SPRING_DATASOURCE_PASSWORD=postgres
 
 # JPA
 SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+# Test Data (optional)
+APP_TESTDATA_ENABLED=true
 ```
+
+### Testdaten
+
+Das System bietet die Möglichkeit, automatisch Testdaten beim Start zu laden. Dies ist besonders nützlich für Entwicklung und Demonstrations-Umgebungen.
+
+#### Automatisches Laden in Development
+
+In der **Development-Umgebung** (Standard-Profil) werden Testdaten **automatisch** beim ersten Start geladen:
+
+```bash
+# In application.properties ist bereits konfiguriert:
+app.testdata.enabled=true
+```
+
+Die Testdaten umfassen:
+- **5 Ressorts**: Küche, Bar, Sicherheit, Technik, Dekoration
+- **15 Helfer**: Mit realistischen Namen, E-Mails und Telefonnummern
+- **3 Schichten**: Morgen-, Mittags- und Abend-Schicht für einen Event-Tag
+- **13 Einsätze**: Verschiedene Aufgaben über alle Schichten und Ressorts verteilt
+
+**Wichtig**: Die Testdaten werden nur geladen, wenn die Datenbank noch leer ist. Bei bereits vorhandenen Daten wird der Ladevorgang übersprungen.
+
+#### Testdaten in Production
+
+In der **Production-Umgebung** (`prod`-Profil) sind Testdaten **standardmäßig deaktiviert**:
+
+```properties
+# In application-prod.properties:
+app.testdata.enabled=false
+```
+
+Falls Sie dennoch Testdaten in Production laden möchten (z.B. für Demo-Zwecke), können Sie dies aktivieren:
+
+**Option 1: Via application-prod.properties**
+```properties
+app.testdata.enabled=true
+```
+
+**Option 2: Via Umgebungsvariable**
+```bash
+export APP_TESTDATA_ENABLED=true
+# oder beim Start:
+java -jar -Dspring.profiles.active=prod -Dapp.testdata.enabled=true target/event-management-system-*.jar
+```
+
+**Option 3: Via Docker Compose**
+```yaml
+services:
+  app:
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - APP_TESTDATA_ENABLED=true
+```
+
+#### Testdaten zurücksetzen
+
+Um die Testdaten zurückzusetzen und neu zu laden:
+
+1. **Development** (mit Docker):
+   ```bash
+   docker compose down -v  # Löscht auch Volumes
+   docker compose up --build
+   ```
+
+2. **Manuell** (PostgreSQL):
+   ```bash
+   dropdb eventmanagement
+   createdb eventmanagement
+   # Anwendung neu starten
+   ```
 
 ### application.properties
 
