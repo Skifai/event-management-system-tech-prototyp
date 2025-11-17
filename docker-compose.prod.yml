@@ -1,0 +1,53 @@
+services:
+  postgresdb-prod:
+    image: postgres:17-alpine
+    container_name: event-management-db-prod-container
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-eventmanagement_prod}
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data_prod:/var/lib/postgresql/data
+    networks:
+      - app-network-prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: event-management-app-prod-container
+    restart: unless-stopped
+    depends_on:
+      postgresdb-prod:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresdb-prod:5432/eventmanagement_prod
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+    ports:
+      - "8081:8080"
+    networks:
+      - app-network-prod
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  db_data_prod:
+
+networks:
+  app-network-prod:
+    driver: bridge

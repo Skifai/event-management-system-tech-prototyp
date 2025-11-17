@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Production Mode (Docker)" type="CompoundRunConfigurationType">
+    <toRun name="Build Production JAR" type="MavenRunConfiguration" />
+    <toRun name="Start Production Containers" type="docker-deploy" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -15,7 +15,8 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/*
+!.idea/runConfigurations/
 *.iws
 *.iml
 *.ipr
@@ -44,7 +45,6 @@ buildNumber.properties
 .mvn/timing.properties
 
 # IntelliJ IDEA
-.idea/
 out/
 
 # Environment
