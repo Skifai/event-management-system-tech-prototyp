@@ -75,7 +75,24 @@ Das System folgt einer klassischen 3-Schichten-Architektur:
 - Docker & Docker Compose (empfohlen)
 - ODER: Java 21 + Maven + PostgreSQL
 
-### Option 1: Mit Docker (Empfohlen)
+### Option 1: IntelliJ IDEA (Empfohlen für Entwicklung)
+
+Das Projekt enthält vorkonfigurierte IntelliJ IDEA Run Configurations für einfache Entwicklung und Produktion.
+
+**Entwicklungsmodus:**
+1. Projekt in IntelliJ IDEA öffnen
+2. Run Configuration "Development Mode" auswählen
+3. Starten (Shift+F10)
+
+Die Anwendung prüft automatisch ob eine PostgreSQL Docker-Instanz läuft und startet diese bei Bedarf.
+
+**Produktionsmodus:**
+1. Run Configuration "Production Mode (Native)" auswählen
+2. Starten - erstellt GraalVM Native Image
+
+Detaillierte Dokumentation: [.idea/runConfigurations/README.md](.idea/runConfigurations/README.md)
+
+### Option 2: Mit Docker (Empfohlen)
 
 ```bash
 # Repository klonen
@@ -93,7 +110,7 @@ docker compose up --build -d
 
 Die Anwendung ist dann unter http://localhost:8080 erreichbar.
 
-### Option 2: Lokale Ausführung
+### Option 3: Lokale Ausführung
 
 ```bash
 # PostgreSQL starten und Datenbank erstellen
