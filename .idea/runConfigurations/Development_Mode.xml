@@ -9,9 +9,6 @@
     <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="dev" />
-      <env name="SPRING_DATASOURCE_URL" value="jdbc:postgresql://localhost:5432/eventmanagement" />
-      <env name="SPRING_DATASOURCE_USERNAME" value="postgres" />
-      <env name="SPRING_DATASOURCE_PASSWORD" value="postgres" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />
