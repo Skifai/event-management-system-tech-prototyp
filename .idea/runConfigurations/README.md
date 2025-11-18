@@ -2,12 +2,17 @@
 
 This directory contains IntelliJ IDEA run configurations for easy development and production deployment.
 
+**Note**: These run configurations work immediately after cloning the repository, without needing to wait for IDEA to generate project files. The Development Mode now uses Maven's `spring-boot:run` goal for better compatibility.
+
 ## Available Run Configurations
 
 ### 1. Development Mode
 **Purpose**: Run the application locally with automatic PostgreSQL Docker container management.
 
+**Type**: Maven run configuration using `spring-boot:run` goal
+
 **What it does**:
+- Uses Maven Spring Boot plugin to run the application
 - Automatically checks if PostgreSQL Docker container is running
 - Creates and starts PostgreSQL container if not found
 - Uses development database on port 5432
