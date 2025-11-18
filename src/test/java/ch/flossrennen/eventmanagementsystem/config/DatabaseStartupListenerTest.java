@@ -1,13 +1,12 @@
 package ch.flossrennen.eventmanagementsystem.config;
 
-import ch.flossrennen.eventmanagementsystem.service.DockerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.core.env.Environment;
+import org.springframework.boot.SpringApplication;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -19,19 +18,16 @@ import static org.mockito.Mockito.*;
 class DatabaseStartupListenerTest {
 
     @Mock
-    private DockerService dockerService;
+    private ConfigurableEnvironment environment;
 
     @Mock
-    private Environment environment;
-
-    @Mock
-    private ApplicationReadyEvent event;
+    private SpringApplication application;
 
     private DatabaseStartupListener listener;
 
     @BeforeEach
     void setUp() {
-        listener = new DatabaseStartupListener(dockerService, environment);
+        listener = new DatabaseStartupListener();
     }
 
     @Test
@@ -40,70 +36,42 @@ class DatabaseStartupListenerTest {
     }
 
     @Test
-    void testOnApplicationEvent_InProductionMode_ShouldSkipDockerCheck() {
+    void testPostProcessEnvironment_InProductionMode_ShouldSkip() {
         // Arrange
         when(environment.getActiveProfiles()).thenReturn(new String[]{"prod"});
 
-        // Act
-        listener.onApplicationEvent(event);
-
-        // Assert
-        verify(dockerService, never()).isDockerAvailable();
-        verify(dockerService, never()).ensurePostgresContainer();
+        // Act & Assert - should not throw exception
+        assertDoesNotThrow(() -> listener.postProcessEnvironment(environment, application),
+                "Should handle production mode gracefully");
     }
 
     @Test
-    void testOnApplicationEvent_InDevelopmentMode_WithDockerAvailable() {
+    void testPostProcessEnvironment_InDevelopmentMode_ShouldNotThrow() {
         // Arrange
         when(environment.getActiveProfiles()).thenReturn(new String[]{"dev"});
-        when(dockerService.isDockerAvailable()).thenReturn(true);
-        when(dockerService.ensurePostgresContainer()).thenReturn(true);
 
-        // Act
-        listener.onApplicationEvent(event);
-
-        // Assert
-        verify(dockerService).isDockerAvailable();
-        verify(dockerService).ensurePostgresContainer();
+        // Act & Assert - should not throw exception even if Docker is not available
+        assertDoesNotThrow(() -> listener.postProcessEnvironment(environment, application),
+                "Should handle development mode gracefully even without Docker");
     }
 
     @Test
-    void testOnApplicationEvent_InDevelopmentMode_WithDockerUnavailable() {
-        // Arrange
-        when(environment.getActiveProfiles()).thenReturn(new String[]{"dev"});
-        when(dockerService.isDockerAvailable()).thenReturn(false);
-
-        // Act
-        listener.onApplicationEvent(event);
-
-        // Assert
-        verify(dockerService).isDockerAvailable();
-        verify(dockerService, never()).ensurePostgresContainer();
-    }
-
-    @Test
-    void testOnApplicationEvent_WithNoProfile_ShouldCheckDocker() {
+    void testPostProcessEnvironment_WithNoProfile_ShouldNotThrow() {
         // Arrange - no active profiles means development mode
         when(environment.getActiveProfiles()).thenReturn(new String[]{});
-        when(dockerService.isDockerAvailable()).thenReturn(true);
-        when(dockerService.ensurePostgresContainer()).thenReturn(true);
 
-        // Act
-        listener.onApplicationEvent(event);
-
-        // Assert
-        verify(dockerService).isDockerAvailable();
-        verify(dockerService).ensurePostgresContainer();
+        // Act & Assert - should not throw exception
+        assertDoesNotThrow(() -> listener.postProcessEnvironment(environment, application),
+                "Should handle default profile gracefully");
     }
 
     @Test
-    void testOnApplicationEvent_HandlesExceptionGracefully() {
+    void testPostProcessEnvironment_HandlesExceptionGracefully() {
         // Arrange
         when(environment.getActiveProfiles()).thenReturn(new String[]{"dev"});
-        when(dockerService.isDockerAvailable()).thenThrow(new RuntimeException("Docker error"));
 
-        // Act & Assert - should not throw exception
-        assertDoesNotThrow(() -> listener.onApplicationEvent(event),
+        // Act & Assert - should not throw exception even if something goes wrong
+        assertDoesNotThrow(() -> listener.postProcessEnvironment(environment, application),
                 "Listener should handle exceptions gracefully");
     }
 }

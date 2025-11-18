@@ -1,18 +1,21 @@
-node_modules
-HELP.md
+### Maven ###
 target/
-.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+.flattened-pom.xml
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+### Spring Boot ###
+HELP.md
+spring-boot-starter-parent.iml
 
 ### IntelliJ IDEA ###
 .idea/*
@@ -20,6 +23,20 @@ target/
 *.iws
 *.iml
 *.ipr
+out/
+.idea_modules/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
 ### NetBeans ###
 /nbproject/private/
@@ -33,34 +50,55 @@ build/
 
 ### VS Code ###
 .vscode/
+*.code-workspace
 
-# Maven
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-
-# IntelliJ IDEA
-out/
-
-# Environment
-.env
-.env.local
-
-# Logs
-*.log
-
-# Docker
-*.pid
-
-# Vaadin Frontend
+### Vaadin Frontend ###
 node_modules/
 frontend/generated/
 frontend/styles/generated/
 pnpmfile.cjs
 package-lock.json
 pnpm-lock.yaml
+webpack.generated.js
+
+### Environment ###
+.env
+.env.local
+.env.*.local
+
+### Logs ###
+*.log
+logs/
+*.log.*
+
+### OS ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+### Temporary Files ###
+*.tmp
+*.temp
+*.swp
+*.swo
+*~.nib
+*.bak
+*.cache
+
+### Docker ###
+*.pid
+.dockerignore.bak
+
+### Test Coverage ###
+.jacoco
+jacoco.exec
+
+### GraalVM Native Image ###
+*.so
+*.dylib
+*.dll
