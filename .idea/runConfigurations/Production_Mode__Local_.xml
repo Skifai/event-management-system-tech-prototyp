@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Development Mode" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
-    <option name="ACTIVE_PROFILES" value="dev" />
+  <configuration default="false" name="Production Mode (Local)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <option name="ACTIVE_PROFILES" value="prod" />
     <module name="event-management-system" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="ch.flossrennen.eventmanagementsystem.EventManagementSystemApplication" />
     <method v="2">
