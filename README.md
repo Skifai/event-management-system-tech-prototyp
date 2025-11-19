@@ -81,6 +81,7 @@ Das System folgt einer klassischen 3-Schichten-Architektur:
 Das Projekt enthält vorkonfigurierte IntelliJ IDEA Run Configurations für einfache Entwicklung und Produktion.
 
 **Neue, verbesserte Run Configurations (November 2024)**:
+- ✅ **Unabhängige Container-Verwaltung** - Datenbanken werden separat verwaltet
 - ✅ Native Spring Boot Application Konfigurationen (statt Maven)
 - ✅ Profile über IDEA's `Active profiles` Feld
 - ✅ Bessere Integration mit IDEA's Spring Boot Tools
@@ -90,7 +91,7 @@ Das Projekt enthält vorkonfigurierte IntelliJ IDEA Run Configurations für einf
 
 **Voraussetzungen:**
 - IntelliJ IDEA installiert (Community oder Ultimate)
-- Docker Desktop läuft (für automatisches PostgreSQL-Management)
+- Docker Desktop läuft
 - Java 21 konfiguriert in IDEA
 
 **Schritt 1: Projekt öffnen**
@@ -99,11 +100,14 @@ Das Projekt enthält vorkonfigurierte IntelliJ IDEA Run Configurations für einf
 3. Projektverzeichnis auswählen
 4. Warten bis Maven-Import abgeschlossen ist
 
-**Schritt 2: Run Configuration auswählen**
+**Schritt 2: Datenbank-Container starten** ⚠️ **Wichtig: Einmalig erforderlich**
+1. Run Configuration **"Start Databases"** aus Dropdown auswählen
+2. ▶️ Run-Button klicken
+3. Container laufen nun im Hintergrund und müssen nicht mehr neu gestartet werden
+
+**Schritt 3: Anwendung starten**
 
 Die Run Configurations sind im Dropdown oben rechts in IDEA verfügbar:
-
-![Run Configuration Dropdown](docs/images/idea-run-config-dropdown.png)
 
 ---
 
@@ -117,8 +121,8 @@ Die Run Configurations sind im Dropdown oben rechts in IDEA verfügbar:
 
 **Was passiert:**
 - Spring Boot startet mit **`dev` Profil** (verwendet `application-dev.properties`)
-- DatabaseStartupListener prüft automatisch Docker-Verfügbarkeit
-- PostgreSQL Container wird automatisch gestartet oder erstellt:
+- DatabaseStartupListener prüft, ob PostgreSQL Container läuft
+- Verbindet sich mit existierendem Container:
   - Container-Name: `event-management-db-container`
   - Port: `5432`
   - Database: `eventmanagement`
@@ -147,16 +151,7 @@ Password: postgres
 **NEU**: Schnelles Testen von Production-Einstellungen ohne Docker!
 
 **Verwendung:**
-1. **Zuerst**: Production PostgreSQL manuell starten:
-   ```bash
-   docker run -d \
-     --name event-management-db-prod-container \
-     -e POSTGRES_DB=eventmanagement_prod \
-     -e POSTGRES_USER=postgres \
-     -e POSTGRES_PASSWORD=postgres \
-     -p 5433:5432 \
-     postgres:17-alpine
-   ```
+1. **Voraussetzung**: Datenbank-Container müssen laufen (siehe "Start Databases")
 2. Run Configuration **"Production Mode (Local)"** auswählen
 3. ▶️ Run-Button klicken
 4. App verfügbar: http://localhost:8081
@@ -166,7 +161,7 @@ Password: postgres
 - Verwendet Production-Einstellungen (optimiert, minimal logging)
 - Läuft auf Port **8081** (unterschiedlich von Development)
 - Verbindet sich mit Production-DB auf Port **5433**
-- **Kein** automatischer DB-Start (DatabaseStartupListener deaktiviert)
+- DatabaseStartupListener prüft Container-Verfügbarkeit
 - **Keine** Testdaten
 
 **Datenbank-Details:**
@@ -263,7 +258,7 @@ java -jar -Dspring.profiles.active=prod target/event-management-system-0.0.1-SNA
 | **App-Port** | 8080 | 8081 | 8081 |
 | **DB-Port** | 5432 | 5433 | 5433 |
 | **Database** | `eventmanagement` | `eventmanagement_prod` | `eventmanagement_prod` |
-| **Auto-Start DB** | ✅ Ja (Docker) | ❌ Manuell | ✅ Ja (Docker Compose) |
+| **Container Management** | Benötigt "Start Databases" | Benötigt "Start Databases" | ✅ Eigene DB im Docker |
 | **Hot-Reload** | ✅ Ja (DevTools) | ❌ Nein | ❌ Nein |
 | **Vaadin Mode** | Development | Production | Production |
 | **SQL Logs** | ✅ DEBUG | ⚠️ INFO/WARN | ⚠️ INFO/WARN |
