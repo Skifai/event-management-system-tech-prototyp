@@ -9,7 +9,8 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -18,10 +19,12 @@ import java.util.List;
 
 /**
  * Service for managing Docker containers, specifically PostgreSQL database instances.
+ * Can be used both as a Spring bean and instantiated directly for early initialization.
  */
 @Service
-@Slf4j
 public class DockerService {
+
+    private static final Logger log = LoggerFactory.getLogger(DockerService.class);
 
     private static final String POSTGRES_CONTAINER_NAME = "event-management-db-container";
     private static final String POSTGRES_IMAGE = "postgres:17-alpine";

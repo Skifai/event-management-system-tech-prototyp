@@ -1,11 +1,11 @@
 package ch.flossrennen.eventmanagementsystem.config;
 
 import ch.flossrennen.eventmanagementsystem.service.DockerService;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
@@ -13,10 +13,13 @@ import java.util.Arrays;
  * Environment post processor that ensures PostgreSQL Docker container is running
  * BEFORE Spring Boot application context starts, when running in development mode.
  * This runs very early in the Spring Boot lifecycle, before the database connection is attempted.
+ * 
+ * Note: This class is loaded via spring.factories and instantiated before the Spring context,
+ * so it cannot use @Component or @Slf4j annotations.
  */
-@Component
-@Slf4j
 public class DatabaseStartupListener implements EnvironmentPostProcessor {
+
+    private static final Logger log = LoggerFactory.getLogger(DatabaseStartupListener.class);
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
