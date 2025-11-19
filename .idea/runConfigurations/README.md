@@ -95,6 +95,18 @@ Note: Database data is preserved in the Docker volume.
 - **Development**: PostgreSQL on `localhost:5432` (database: `eventmanagement`)
 - **Production**: PostgreSQL on `localhost:5433` (database: `eventmanagement_prod`)
 
+## Recent Fixes
+
+### DatabaseStartupListener Fix (November 2025)
+
+The `DatabaseStartupListener` has been updated to work correctly as an `EnvironmentPostProcessor`:
+- Removed `@Component` annotation (not needed for EnvironmentPostProcessor)
+- Removed `@Slf4j` Lombok annotation and replaced with direct `LoggerFactory.getLogger()`
+- This ensures the listener works properly BEFORE the Spring context initializes
+- The listener now correctly starts PostgreSQL containers before database connections are attempted
+
+The same fix was applied to `DockerService` to ensure it works when instantiated directly by the listener.
+
 ## Troubleshooting
 
 ### Development Mode Issues
