@@ -80,6 +80,12 @@ Das System folgt einer klassischen 3-Schichten-Architektur:
 
 Das Projekt enthält vorkonfigurierte IntelliJ IDEA Run Configurations für einfache Entwicklung und Produktion.
 
+**Neue, verbesserte Run Configurations (November 2024)**:
+- ✅ Native Spring Boot Application Konfigurationen (statt Maven)
+- ✅ Profile über IDEA's `Active profiles` Feld
+- ✅ Bessere Integration mit IDEA's Spring Boot Tools
+- ✅ Schnellerer Start, besseres Debugging
+
 #### Starten in IDEA - Schritt für Schritt
 
 **Voraussetzungen:**
@@ -101,7 +107,7 @@ Die Run Configurations sind im Dropdown oben rechts in IDEA verfügbar:
 
 ---
 
-#### 🔵 Development Mode (Standard-Profil)
+#### 🔵 Development Mode (dev-Profil)
 
 **Verwendung:**
 1. Run Configuration **"Development Mode"** aus Dropdown auswählen
@@ -110,7 +116,7 @@ Die Run Configurations sind im Dropdown oben rechts in IDEA verfügbar:
 4. Browser öffnet automatisch: http://localhost:8080
 
 **Was passiert:**
-- Spring Boot startet **ohne** spezifisches Profil (verwendet `application.properties`)
+- Spring Boot startet mit **`dev` Profil** (verwendet `application-dev.properties`)
 - DatabaseStartupListener prüft automatisch Docker-Verfügbarkeit
 - PostgreSQL Container wird automatisch gestartet oder erstellt:
   - Container-Name: `event-management-db-container`
@@ -118,6 +124,7 @@ Die Run Configurations sind im Dropdown oben rechts in IDEA verfügbar:
   - Database: `eventmanagement`
 - Vaadin läuft im Development-Mode (Hot-Reload aktiv)
 - SQL-Logs werden in Console angezeigt
+- Testdaten werden automatisch geladen
 
 **Datenbank-Details:**
 ```properties
@@ -128,14 +135,60 @@ Username: postgres
 Password: postgres
 ```
 
+**Konfigurationstyp**: Spring Boot Application (nicht Maven)  
+**Profile**: `dev`
+
 **Hinweis:** Falls Docker nicht läuft, startet die App trotzdem, erwartet aber eine externe PostgreSQL auf Port 5432.
 
 ---
 
-#### 🟢 Production Mode (prod-Profil mit GraalVM)
+#### 🟢 Production Mode (Local) - prod-Profil
+
+**NEU**: Schnelles Testen von Production-Einstellungen ohne Docker!
 
 **Verwendung:**
-1. Run Configuration **"Production Mode (Native)"** aus Dropdown auswählen
+1. **Zuerst**: Production PostgreSQL manuell starten:
+   ```bash
+   docker run -d \
+     --name event-management-db-prod-container \
+     -e POSTGRES_DB=eventmanagement_prod \
+     -e POSTGRES_USER=postgres \
+     -e POSTGRES_PASSWORD=postgres \
+     -p 5433:5432 \
+     postgres:17-alpine
+   ```
+2. Run Configuration **"Production Mode (Local)"** auswählen
+3. ▶️ Run-Button klicken
+4. App verfügbar: http://localhost:8081
+
+**Was passiert:**
+- Spring Boot startet mit **`prod` Profil** (verwendet `application-prod.properties`)
+- Verwendet Production-Einstellungen (optimiert, minimal logging)
+- Läuft auf Port **8081** (unterschiedlich von Development)
+- Verbindet sich mit Production-DB auf Port **5433**
+- **Kein** automatischer DB-Start (DatabaseStartupListener deaktiviert)
+- **Keine** Testdaten
+
+**Datenbank-Details:**
+```properties
+Host: localhost
+Port: 5433  # NICHT 5432!
+Database: eventmanagement_prod
+Username: postgres
+Password: postgres
+```
+
+**Konfigurationstyp**: Spring Boot Application  
+**Profile**: `prod`
+
+**Wann verwenden**: Schnelles Testen von Production-Settings ohne lange Docker-Build-Zeit
+
+---
+
+#### 🐳 Production Mode (Docker) - prod-Profil mit GraalVM
+
+**Verwendung:**
+1. Run Configuration **"Production Mode (Docker)"** aus Dropdown auswählen
 2. ▶️ Run-Button klicken
 3. **Warten** (erster Build dauert 5-15 Minuten für GraalVM Native Image)
 4. Nach Abschluss: http://localhost:8081
@@ -159,9 +212,15 @@ Username: postgres
 Password: postgres
 ```
 
+**Konfigurationstyp**: Shell Script (Docker Compose)  
+**Profile**: `prod`
+
 **Wichtig:** 
 - Production läuft auf Port **8081** (Development auf 8080)
 - Beide Modi können parallel laufen (unterschiedliche Ports und Datenbanken)
+- Erster Build dauert lange (GraalVM Compilation)
+
+**Stoppen**: "Stop Production Mode" Run Configuration verwenden
 
 ---
 
@@ -171,10 +230,11 @@ Falls Sie ein eigenes Profil verwenden möchten:
 
 **Via Run Configuration bearbeiten:**
 1. Run Configuration Dropdown → `Edit Configurations...`
-2. Neue Spring Boot Configuration erstellen
+2. Neue **Spring Boot Application** Configuration erstellen
 3. Main class: `ch.flossrennen.eventmanagementsystem.EventManagementSystemApplication`
-4. Active profiles: `ihr-profil` (z.B. `dev`, `prod`, `test`)
-5. Environment variables (optional):
+4. Module: `event-management-system`
+5. **Active profiles**: `ihr-profil` (z.B. `dev`, `prod`, `test`)
+6. Environment variables (optional):
    ```
    SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/ihre_db
    SPRING_DATASOURCE_USERNAME=ihr_user
@@ -195,19 +255,23 @@ java -jar -Dspring.profiles.active=prod target/event-management-system-0.0.1-SNA
 
 #### 📋 Übersicht: Profile und Unterschiede
 
-| Eigenschaft | Development (kein Profil) | Production (prod) |
-|-------------|---------------------------|-------------------|
-| **Profile** | Standard / `dev` | `prod` |
-| **Run Config** | "Development Mode" | "Production Mode (Native)" |
-| **App-Port** | 8080 | 8081 |
-| **DB-Port** | 5432 | 5433 |
-| **Database** | `eventmanagement` | `eventmanagement_prod` |
-| **Auto-Start DB** | ✅ Ja (Docker) | ❌ Nein (manuell via docker-compose) |
-| **Hot-Reload** | ✅ Ja (DevTools) | ❌ Nein |
-| **Vaadin Mode** | Development | Production |
-| **SQL Logs** | ✅ DEBUG | ⚠️ WARN |
-| **DDL Auto** | `update` | `validate` |
-| **Build-Typ** | JAR | GraalVM Native Image |
+| Eigenschaft | Development (dev) | Production (Local) | Production (Docker) |
+|-------------|-------------------|-------------------|---------------------|
+| **Profile** | `dev` | `prod` | `prod` |
+| **Run Config** | "Development Mode" | "Production Mode (Local)" | "Production Mode (Docker)" |
+| **Config-Typ** | Spring Boot App | Spring Boot App | Shell Script |
+| **App-Port** | 8080 | 8081 | 8081 |
+| **DB-Port** | 5432 | 5433 | 5433 |
+| **Database** | `eventmanagement` | `eventmanagement_prod` | `eventmanagement_prod` |
+| **Auto-Start DB** | ✅ Ja (Docker) | ❌ Manuell | ✅ Ja (Docker Compose) |
+| **Hot-Reload** | ✅ Ja (DevTools) | ❌ Nein | ❌ Nein |
+| **Vaadin Mode** | Development | Production | Production |
+| **SQL Logs** | ✅ DEBUG | ⚠️ INFO/WARN | ⚠️ INFO/WARN |
+| **DDL Auto** | `update` | `validate` | `validate` |
+| **Build-Typ** | JAR | JAR | GraalVM Native Image |
+| **Testdaten** | ✅ Ja | ❌ Nein | ❌ Nein |
+| **Startup** | ~3-5 Sek | ~3-5 Sek | <1 Sek (Native) |
+| **Build-Zeit** | Schnell | Schnell | 5-15 Min (erste) |
 
 ---
 

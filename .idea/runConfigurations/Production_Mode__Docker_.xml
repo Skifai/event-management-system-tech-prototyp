@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Production Mode (Native)" type="ShellConfigurationType">
-    <option name="SCRIPT_TEXT" value="#!/bin/bash&#10;echo &quot;Building GraalVM Native Image with Production Profile...&quot;&#10;docker compose -f docker-compose.prod.yml up --build -d&#10;echo &quot;Production application starting...&quot;&#10;echo &quot;Access at: http://localhost:8081&quot;&#10;echo &quot;Production DB on port: 5433&quot;&#10;echo &quot;&quot;&#10;echo &quot;To view logs: docker compose -f docker-compose.prod.yml logs -f&quot;&#10;echo &quot;To stop: docker compose -f docker-compose.prod.yml down&quot;" />
+  <configuration default="false" name="Production Mode (Docker)" type="ShellConfigurationType">
+    <option name="SCRIPT_TEXT" value="#!/bin/bash&#10;echo &quot;Building GraalVM Native Image with Production Profile...&quot;&#10;docker compose -f docker-compose.prod.yml up --build -d&#10;echo &quot;Production application starting...&quot;&#10;echo &quot;Access at: http://localhost:8081&quot;&#10;echo &quot;Production DB on port: 5433&quot;&#10;echo &quot;&quot;&#10;echo &quot;To view logs: docker compose -f docker-compose.prod.yml logs -f&quot;&#10;echo &quot;To stop: Use 'Stop Production Mode' run configuration or run: docker compose -f docker-compose.prod.yml down&quot;" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="false" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />
