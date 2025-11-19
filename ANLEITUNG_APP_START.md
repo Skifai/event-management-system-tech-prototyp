@@ -38,7 +38,9 @@ Wenn dieser Befehl ohne Fehler ausgeführt wird, ist Docker bereit.
 1. In IDEA: Run Configuration Dropdown öffnen (oben rechts)
 2. **"Start Databases"** auswählen
 3. Run-Button (▶️) klicken
-4. Im Terminal erscheint eine Bestätigung mit Container-Details
+4. Docker Compose startet die Container automatisch
+
+> 💡 Diese Run Configuration verwendet Docker Compose direkt (kein Bash-Wrapper mehr)
 
 **Option B: Über Kommandozeile**
 

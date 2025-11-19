@@ -167,37 +167,27 @@ public boolean isPostgresContainerRunning(String containerName) {
 
 **File**: `.idea/runConfigurations/Start_Databases.xml`
 
-**Type**: Shell Script
+**Type**: Docker Compose (docker-deploy)
 
-**Script**:
-```bash
-#!/bin/bash
-echo "Starting PostgreSQL database containers..."
-docker compose -f docker-compose.db.yml up -d
-echo "✅ Databases started successfully!"
-echo "Development DB:  localhost:5432 (container: event-management-db-container)"
-echo "Production DB:   localhost:5433 (container: event-management-db-prod-container)"
-echo "View logs:       docker compose -f docker-compose.db.yml logs -f"
-echo "Stop databases:  Use 'Stop Databases' run configuration"
-```
+**Configuration**:
+- Uses `docker-compose.db.yml` file directly
+- Starts containers using native Docker Compose integration
+- No bash wrapper script needed
 
-**Purpose**: Start both database containers from IDEA
+**Purpose**: Start both database containers from IDEA using Docker Compose directly
 
 #### Stop Databases
 
 **File**: `.idea/runConfigurations/Stop_Databases.xml`
 
-**Type**: Shell Script
+**Type**: Docker Compose (docker-deploy)
 
-**Script**:
-```bash
-#!/bin/bash
-echo "Stopping PostgreSQL database containers..."
-docker compose -f docker-compose.db.yml down
-echo "✅ Databases stopped successfully!"
-```
+**Configuration**:
+- Uses `docker-compose.db.yml` file with `down` command
+- Stops containers using native Docker Compose integration  
+- No bash wrapper script needed
 
-**Purpose**: Stop database containers from IDEA
+**Purpose**: Stop database containers from IDEA using Docker Compose directly
 
 ### 5. Documentation Updates
 
