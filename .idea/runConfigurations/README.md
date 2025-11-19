@@ -200,7 +200,85 @@ java -jar -Dspring.profiles.active=prod target/event-management-system-0.0.1-SNA
 
 ---
 
-### 5. Stop Production Mode 🛑
+### 5. Start Databases 🔧
+
+**Purpose**: Start PostgreSQL database containers independently from the application.
+
+**Type**: Docker Compose run configuration
+
+**What it does**:
+- Uses Docker Compose directly (no bash wrapper)
+- Starts development PostgreSQL on port 5432
+- Starts production PostgreSQL on port 5433
+- Containers run in detached mode (background)
+- Uses `docker-compose.db.yml` configuration
+
+**Requirements**:
+- Docker Desktop or Docker Engine running
+- At least 512MB RAM for both databases
+
+**Usage**:
+1. Ensure Docker Desktop is running
+2. Select "Start Databases" from run configurations dropdown
+3. Click Run (▶️)
+4. Containers will start in the background
+
+**What happens**:
+- Runs: `docker compose -f docker-compose.db.yml up -d`
+- Creates volumes for data persistence (`db_data_dev`, `db_data_prod`)
+- Sets up health checks for both databases
+- Containers remain running even after IDEA closes
+
+**Verify containers are running**:
+```bash
+docker ps | grep event-management-db
+```
+
+You should see:
+- `event-management-db-container` (Dev, Port 5432)
+- `event-management-db-prod-container` (Prod, Port 5433)
+
+**Important Notes**:
+- ✅ Containers persist across IDEA restarts
+- ✅ Only needs to be run once (containers stay running)
+- ✅ Data persists in Docker volumes
+- ⚠️ Make sure Docker Desktop is running first
+
+---
+
+### 6. Stop Databases 🛑
+
+**Purpose**: Stop PostgreSQL database containers.
+
+**Type**: Docker Compose run configuration
+
+**What it does**:
+- Uses Docker Compose directly (no bash wrapper)
+- Stops both development and production PostgreSQL containers
+- Removes containers but preserves data volumes
+- Uses `docker-compose.db.yml` configuration
+
+**Usage**:
+1. Select "Stop Databases" from run configurations dropdown
+2. Click Run (▶️)
+3. Containers will be stopped and removed
+
+**What happens**:
+- Runs: `docker compose -f docker-compose.db.yml down`
+- Stops both database containers gracefully
+- Removes containers
+- Preserves data in Docker volumes (data is NOT lost)
+
+**To remove data volumes as well** (⚠️ deletes all database data):
+```bash
+docker compose -f docker-compose.db.yml down -v
+```
+
+**Note**: Usually, you don't need to stop the containers. They can run continuously in the background.
+
+---
+
+### 7. Stop Production Mode 🛑
 
 **Purpose**: Stop and remove production Docker containers.
 
@@ -224,10 +302,12 @@ java -jar -Dspring.profiles.active=prod target/event-management-system-0.0.1-SNA
 
 | Configuration | Profile | Port | Database | Auto-Start DB | Use Case |
 |--------------|---------|------|----------|---------------|----------|
+| **Start Databases** | N/A | N/A | 5432, 5433 | N/A | Start DB containers independently |
 | **Development Mode** | `dev` | 8080 | localhost:5432 | ✅ Yes | Daily development |
 | **Production (Local)** | `prod` | 8081 | localhost:5433 | ❌ No (manual) | Test prod settings locally |
 | **Production (Docker)** | `prod` | 8081 | Container:5433 | ✅ Yes (Docker) | Full production stack |
 | **Build JAR** | N/A | N/A | N/A | N/A | Create deployable artifact |
+| **Stop Databases** | N/A | N/A | N/A | N/A | Stop DB containers |
 | **Stop Production** | N/A | N/A | N/A | N/A | Clean up Docker containers |
 
 ---
