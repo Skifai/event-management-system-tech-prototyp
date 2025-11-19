@@ -81,19 +81,27 @@ public class DockerService {
      * Check if PostgreSQL container exists and is running.
      */
     public boolean isPostgresContainerRunning() {
+        return isPostgresContainerRunning(POSTGRES_CONTAINER_NAME);
+    }
+
+    /**
+     * Check if a specific PostgreSQL container exists and is running.
+     * @param containerName The name of the container to check
+     */
+    public boolean isPostgresContainerRunning(String containerName) {
         if (!isDockerAvailable()) {
             return false;
         }
 
         try {
             List<Container> containers = dockerClient.listContainersCmd()
-                    .withNameFilter(Arrays.asList(POSTGRES_CONTAINER_NAME))
+                    .withNameFilter(Arrays.asList(containerName))
                     .withStatusFilter(Arrays.asList("running"))
                     .exec();
 
             return !containers.isEmpty();
         } catch (Exception e) {
-            log.error("Error checking PostgreSQL container status: {}", e.getMessage());
+            log.error("Error checking PostgreSQL container status for {}: {}", containerName, e.getMessage());
             return false;
         }
     }
