@@ -1,17 +1,23 @@
 # IntelliJ IDEA Setup und Verwendung
 
-Dieses Dokument beschreibt die Einrichtung und Verwendung des Event Management Systems in IntelliJ IDEA mit den neuen, verbesserten Run Configurations.
+Dieses Dokument beschreibt die Einrichtung und Verwendung des Event Management Systems in IntelliJ IDEA.
 
 ## Wichtige Änderungen (November 2024)
 
-✅ **Neue Spring Boot Application Run Configurations**
-- Verwendet jetzt native IDEA Spring Boot Integration (statt Maven)
+✅ **Unabhängige Container-Verwaltung**
+- Datenbank-Container werden jetzt **unabhängig** von Run Configurations verwaltet
+- Neue Run Configurations: "Start Databases" und "Stop Databases"
+- Run Configurations erstellen **keine** Container mehr automatisch
+- Bessere Kontrolle über die Container-Lebensdauer
+
+✅ **Spring Boot Application Run Configurations**
+- Verwendet native IDEA Spring Boot Integration (statt Maven)
 - Profile werden über IDEA's `Active profiles` Feld gesetzt
 - Bessere Integration mit IDEA's Spring Boot Tools (Dashboard, Beans View, etc.)
 - Schnellerer Start ohne Maven-Overhead
 
 ✅ **Drei Modi verfügbar**:
-1. **Development Mode**: Für tägliche Entwicklung mit Auto-PostgreSQL
+1. **Development Mode**: Für tägliche Entwicklung
 2. **Production Mode (Local)**: Schnelles Testen von Prod-Settings ohne Docker
 3. **Production Mode (Docker)**: Vollständiger Stack mit GraalVM Native Image
 
@@ -24,11 +30,25 @@ Dieses Dokument beschreibt die Einrichtung und Verwendung des Event Management S
 
 ## Schnellstart
 
+### Erstmalige Einrichtung
+
 1. Docker Desktop starten
 2. Projekt in IDEA öffnen
-3. "Development Mode" Run Configuration auswählen
-4. Run klicken (▶️) oder `Shift+F10`
-5. Fertig! Browser öffnet automatisch http://localhost:8080
+3. **Wichtig**: Datenbank-Container starten
+   - Run Configuration "Start Databases" ausführen (▶️)
+   - ODER Kommandozeile: `docker compose -f docker-compose.db.yml up -d`
+4. "Development Mode" Run Configuration auswählen
+5. Run klicken (▶️) oder `Shift+F10`
+6. Fertig! Browser öffnet automatisch http://localhost:8080
+
+### Tägliche Nutzung
+
+1. Docker Desktop läuft bereits
+2. Datenbank-Container laufen bereits (werden beim ersten Mal gestartet und bleiben aktiv)
+3. "Development Mode" auswählen und starten
+4. Entwickeln!
+
+> **Hinweis**: Die Datenbank-Container müssen nur einmal gestartet werden und bleiben dann im Hintergrund aktiv. Sie müssen sie nicht bei jedem Start der Anwendung neu starten.
 
 ## Projekt Setup
 
@@ -56,6 +76,44 @@ cd event-management-system-tech-prototyp
 
 ## Run Configurations
 
+### 0. Start Databases (Voraussetzung) 🔧
+
+**Für**: Container-Management (muss vor allen anderen Modi ausgeführt werden)
+
+**Typ**: Shell Script  
+**Zweck**: Startet beide PostgreSQL-Container unabhängig
+
+**Start**:
+1. Docker Desktop läuft
+2. "Start Databases" auswählen
+3. Run (▶️)
+
+**Was passiert**:
+- Startet Development DB Container (Port 5432)
+- Startet Production DB Container (Port 5433)
+- Container bleiben im Hintergrund aktiv
+- Müssen nur einmal gestartet werden
+
+**Container Details**:
+```
+Development DB:
+  - Container: event-management-db-container
+  - Port: 5432
+  - Database: eventmanagement
+  - User/Pass: postgres/postgres
+
+Production DB:
+  - Container: event-management-db-prod-container  
+  - Port: 5433
+  - Database: eventmanagement_prod
+  - User/Pass: postgres/postgres
+```
+
+**Wichtig**: 
+- ✅ Diese Container bleiben aktiv und müssen nicht bei jedem App-Start neu gestartet werden
+- ✅ Sie überleben Neustarts von IDEA und dem Computer (sofern Docker läuft)
+- ⚠️ Run Configurations versuchen NICHT mehr, Container automatisch zu erstellen
+
 ### 1. Development Mode ⭐ (Empfohlen)
 
 **Für**: Tägliche Entwicklung
@@ -65,17 +123,22 @@ cd event-management-system-tech-prototyp
 **Port**: 8080  
 **DB Port**: 5432
 
-**Start**:
+**Voraussetzungen**:
 1. Docker Desktop läuft
+2. **Datenbank-Container sind gestartet** (siehe "Start Databases")
+
+**Start**:
+1. Voraussetzungen erfüllt
 2. "Development Mode" auswählen
 3. Run (▶️) oder `Shift+F10`
 
 **Features**:
-- ✅ PostgreSQL Container wird automatisch gestartet/erstellt
+- ✅ Verbindet sich mit PostgreSQL Container auf Port 5432
 - ✅ Hot-Reload mit DevTools
 - ✅ SQL-Logs für Debugging
 - ✅ Browser öffnet automatisch
 - ✅ Testdaten werden geladen
+- ⚠️ Container wird NICHT automatisch erstellt (muss vorher gestartet sein)
 
 **Datenbank**:
 - Container: `event-management-db-container`
@@ -91,25 +154,20 @@ cd event-management-system-tech-prototyp
 **Port**: 8081  
 **DB Port**: 5433
 
+**Voraussetzungen**:
+1. Docker Desktop läuft
+2. **Datenbank-Container sind gestartet** (siehe "Start Databases")
+
 **Start**:
-1. Production DB manuell starten:
-   ```bash
-   docker run -d \
-     --name event-management-db-prod-container \
-     -e POSTGRES_DB=eventmanagement_prod \
-     -e POSTGRES_USER=postgres \
-     -e POSTGRES_PASSWORD=postgres \
-     -p 5433:5432 \
-     postgres:17-alpine
-   ```
+1. Voraussetzungen erfüllt
 2. "Production Mode (Local)" auswählen
 3. Run (▶️)
 
 **Features**:
 - ✅ Production-Einstellungen (optimiert, minimal logging)
 - ✅ Schneller Start (kein Docker-Build)
-- ✅ Separate DB auf Port 5433
-- ❌ Kein Auto-Start der DB
+- ✅ Verbindet sich mit separate DB auf Port 5433
+- ⚠️ Container wird NICHT automatisch erstellt (muss vorher gestartet sein)
 - ❌ Keine Testdaten
 
 ### 3. Production Mode (Docker) 🐳
@@ -128,7 +186,7 @@ cd event-management-system-tech-prototyp
 **Features**:
 - ✅ GraalVM Native Image (optimiert)
 - ✅ Docker Compose Setup
-- ✅ Separate Production DB
+- ✅ Separate Production DB (unabhängig von "Start Databases")
 - ⚠️ Langer Build beim ersten Mal
 
 **Stoppen**: "Stop Production Mode" Run Configuration
@@ -139,15 +197,23 @@ Erstellt production-ready JAR: `target/event-management-system-0.0.1-SNAPSHOT.ja
 
 ### 5. Stop Production Mode 🛑
 
-Stoppt Docker Production Container.
+Stoppt Docker Production Container (nur für Production Mode Docker).
+
+### 6. Stop Databases 🛑
+
+Stoppt beide Datenbank-Container (Dev + Prod).
+
+**Wichtig**: Dies stoppt die Container, die mit "Start Databases" gestartet wurden.
 
 ## Übersicht
 
-| Configuration | Profile | Port | DB Port | Auto-DB | Use Case |
-|--------------|---------|------|---------|---------|----------|
-| Development | `dev` | 8080 | 5432 | ✅ | Tägliche Arbeit |
-| Prod (Local) | `prod` | 8081 | 5433 | ❌ | Schnelles Prod-Testing |
-| Prod (Docker) | `prod` | 8081 | 5433 | ✅ | Vollständiger Stack |
+| Configuration | Profile | Port | DB Port | Container Management | Use Case |
+|--------------|---------|------|---------|---------------------|----------|
+| Start Databases | - | - | 5432, 5433 | Startet beide DBs | Voraussetzung |
+| Development | `dev` | 8080 | 5432 | Benötigt laufende DB | Tägliche Arbeit |
+| Prod (Local) | `prod` | 8081 | 5433 | Benötigt laufende DB | Schnelles Prod-Testing |
+| Prod (Docker) | `prod` | 8081 | 5433 | Eigene DB im Docker | Vollständiger Stack |
+| Stop Databases | - | - | - | Stoppt beide DBs | Aufräumen |
 
 ## Spring Profiles
 
@@ -165,11 +231,13 @@ app.testdata.enabled=true
 ```
 
 **Features**:
-- Auto-Start PostgreSQL via DatabaseStartupListener
+- Verbindet sich mit Dev-DB Container (Port 5432)
 - Hot-Reload mit DevTools
 - Verbose Logging
 - Automatische Schema-Updates
 - Testdaten werden geladen
+
+**Wichtig**: Container muss vorher mit "Start Databases" gestartet werden!
 
 ### Profile: `prod`
 
@@ -185,10 +253,13 @@ app.testdata.enabled=false
 ```
 
 **Features**:
-- DatabaseStartupListener deaktiviert
+- Verbindet sich mit Prod-DB Container (Port 5433)
+- DatabaseStartupListener prüft Container-Verfügbarkeit
 - Minimal Logging
 - Schema nur Validierung
 - Keine Testdaten
+
+**Wichtig**: Container muss vorher mit "Start Databases" gestartet werden!
 
 ## Warum Spring Boot Application statt Maven?
 
@@ -234,16 +305,37 @@ docker stop <container-id>
 ```
 
 ### "Cannot connect to database"
+
+**Symptom**: Application startet, aber kann sich nicht mit der Datenbank verbinden
+
 ```bash
-# Container Status
-docker ps
+# 1. Prüfen ob Container laufen
+docker ps | grep event-management-db
 
-# Logs prüfen
-docker logs event-management-db-container
+# 2. Wenn keine Container laufen, starten Sie sie:
+# Über IDEA:
+#   - Run Configuration "Start Databases" ausführen
+# Oder Kommandozeile:
+docker compose -f docker-compose.db.yml up -d
 
-# Container starten
-docker start event-management-db-container
+# 3. Container Logs prüfen (wenn Container läuft aber Verbindung fehlschlägt)
+docker logs event-management-db-container        # für Dev
+docker logs event-management-db-prod-container   # für Prod
+
+# 4. Container neu starten (wenn Logs Probleme zeigen)
+docker restart event-management-db-container     # für Dev
+docker restart event-management-db-prod-container # für Prod
 ```
+
+### "PostgreSQL container is not running" beim App-Start
+
+**Symptom**: Fehlermeldung beim Starten der Anwendung
+
+**Lösung**:
+1. Datenbank-Container müssen **vor** der Anwendung gestartet werden
+2. In IDEA: Run Configuration "Start Databases" ausführen
+3. Oder Kommandozeile: `docker compose -f docker-compose.db.yml up -d`
+4. Dann Anwendung erneut starten
 
 ### "Release version 21 not supported"
 1. `File` → `Project Structure` → `Project`
@@ -259,26 +351,53 @@ docker start event-management-db-container
 
 ### Typischer Tag
 
-1. **Morgens**: Docker starten, Development Mode laufen lassen
-2. **Entwickeln**: Code ändern, DevTools reloaded automatisch
+1. **Morgens**: 
+   - Docker Desktop starten
+   - **Erstmals**: Datenbank-Container starten ("Start Databases" Run Config)
+   - **Danach**: Container laufen bereits im Hintergrund
+2. **Entwickeln**: 
+   - Development Mode starten
+   - Code ändern, DevTools reloaded automatisch
 3. **Debuggen**: Debug-Modus (🐞), Breakpoints setzen
 4. **Testen**: `./mvnw test` vor Commit
 5. **Production testen**: Optional mit Production Mode (Local)
+6. **Abends**: Optional - Container können laufen bleiben oder mit "Stop Databases" gestoppt werden
 
 ### Best Practices
 
 ✅ **DOs**:
+- Datenbank-Container einmal starten, dann laufen lassen
 - Development Mode für tägliche Arbeit
 - DevTools Hot-Reload nutzen
 - SQL-Logs beobachten
 - Regelmäßig testen
 
 ❌ **DON'Ts**:
+- Nicht vergessen, Datenbank-Container vor App-Start zu starten
 - Nicht in Production Mode entwickeln
-- Nicht beide Modi gleichzeitig
+- Nicht beide Modi gleichzeitig auf gleichen Ports
 - Nicht Dev-DB für Prod verwenden
 
 ## Database Management
+
+### Container Management
+
+```bash
+# Alle Datenbank-Container starten
+docker compose -f docker-compose.db.yml up -d
+
+# Container Status prüfen
+docker compose -f docker-compose.db.yml ps
+
+# Logs anzeigen
+docker compose -f docker-compose.db.yml logs -f
+
+# Container stoppen
+docker compose -f docker-compose.db.yml down
+
+# Container stoppen und Daten löschen
+docker compose -f docker-compose.db.yml down -v
+```
 
 ### Development DB
 ```bash
@@ -298,17 +417,14 @@ docker exec event-management-db-container psql -U postgres -c "CREATE DATABASE e
 
 ### Production DB
 ```bash
-# Manuell starten (für Local Mode)
-docker run -d \
-  --name event-management-db-prod-container \
-  -e POSTGRES_DB=eventmanagement_prod \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5433:5432 \
-  postgres:17-alpine
-
 # Verbinden
 docker exec -it event-management-db-prod-container psql -U postgres -d eventmanagement_prod
+
+# Backup
+docker exec event-management-db-prod-container pg_dump -U postgres eventmanagement_prod > backup_prod.sql
+
+# Restore
+cat backup_prod.sql | docker exec -i event-management-db-prod-container psql -U postgres -d eventmanagement_prod
 ```
 
 ## Weitere Ressourcen
@@ -329,4 +445,35 @@ Bei Problemen bitte ein GitHub Issue erstellen mit:
 
 ---
 
-**Zusammenfassung**: Die neuen Run Configurations verwenden native Spring Boot Application Konfigurationen für bessere IDEA-Integration. Einfach "Development Mode" auswählen, Run klicken, fertig! 🎉
+**Zusammenfassung**: Die neuen Run Configurations verwenden native Spring Boot Application Konfigurationen für bessere IDEA-Integration. Datenbank-Container werden jetzt **unabhängig** verwaltet - starten Sie sie einmal mit "Start Databases", dann können Sie die Anwendung beliebig oft starten und stoppen! 🎉
+
+## Wichtige Änderungen gegenüber vorher
+
+### Was ist neu?
+
+✅ **Unabhängige Container-Verwaltung**:
+- Container werden nicht mehr automatisch von Run Configurations erstellt
+- Neue Run Configurations "Start Databases" und "Stop Databases" 
+- Container bleiben im Hintergrund aktiv
+- Bessere Kontrolle über Container-Lebensdauer
+
+✅ **Neue docker-compose.db.yml**:
+- Verwaltet beide Datenbank-Container (Dev + Prod)
+- Kann manuell oder über IDEA Run Configurations verwendet werden
+
+### Warum diese Änderung?
+
+🎯 **Bessere Trennung von Concerns**:
+- Anwendung verwaltet keine Container mehr
+- Container-Lifecycle ist unabhängig von App-Lifecycle
+- Einfacher zu verstehen und zu debuggen
+
+🎯 **Flexibler**:
+- Container können geteilt werden zwischen mehreren App-Instanzen
+- Einfacher für lokale Entwicklung mit mehreren Projekten
+- Container können laufen bleiben zwischen IDEA-Neustarts
+
+🎯 **Weniger Überraschungen**:
+- Klare Fehlermeldungen wenn Container nicht laufen
+- Keine automatische Container-Erstellung mehr
+- Vorhersehbares Verhalten
