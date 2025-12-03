@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Service für die Suche und Filterung von Einsätzen.
  * Implementiert MFA.09 - Suchfunktion
- *
+ * <p>
  * Dieser Service ermöglicht die kombinierte Suche nach mehreren Kriterien.
  * Die Filter werden nacheinander angewendet (AND-Verknüpfung).
  */
@@ -26,15 +26,17 @@ public class SearchService {
 
     /**
      * Sucht Einsätze nach verschiedenen optionalen Kriterien.
-     *
+     * <p>
      * Die Methode lädt zunächst alle Einsätze und wendet dann die angegebenen Filter
      * schrittweise an. Alle Filter sind optional (null = Filter nicht aktiv).
-     *
+     * <p>
      * Filter-Logik (AND-Verknüpfung):
-     * 1. Ressort-Filter: Nur Einsätze des angegebenen Ressorts
-     * 2. Zeitraum-Filter: Nur Einsätze, die im Zeitraum starten
-     * 3. Helfer-Filter: Nur Einsätze, denen der Helfer zugewiesen ist
-     * 4. Status-Filter: Nur Einsätze mit dem angegebenen Status
+     * <ol>
+     * <li>Ressort-Filter: Nur Einsätze des angegebenen Ressorts</li>
+     * <li>Zeitraum-Filter: Nur Einsätze, die im Zeitraum starten</li>
+     * <li>Helfer-Filter: Nur Einsätze, denen der Helfer zugewiesen ist</li>
+     * <li>Status-Filter: Nur Einsätze mit dem angegebenen Status</li>
+     * </ol>
      *
      * @param ressort Filter nach Ressort (optional, null = keine Filterung)
      * @param startDatum Start des Zeitraums (optional, benötigt endDatum)

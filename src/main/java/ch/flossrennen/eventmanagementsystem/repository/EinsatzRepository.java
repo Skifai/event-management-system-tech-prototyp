@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Repository für Einsatz-Entitäten.
- *
+ * <p>
  * Bietet Datenbankzugriff für Einsätze mit verschiedenen Suchmethoden.
  * Nutzt Spring Data JPA für automatische Implementierung der Basismethoden
  * und benutzerdefinierte Queries für komplexere Abfragen.
@@ -64,16 +64,16 @@ public interface EinsatzRepository extends JpaRepository<Einsatz, Long> {
     /**
      * Findet alle Einsätze, die sich zeitlich mit dem angegebenen Zeitraum überschneiden
      * UND denen der angegebene Helfer bereits zugewiesen ist.
-     *
+     * <p>
      * Diese Methode wird für die Doppelzuweisungs-Prüfung verwendet (MFA.03).
      * Zwei Zeiträume überschneiden sich, wenn:
-     * - Einsatz.startzeit < parameter.endzeit UND
-     * - Einsatz.endzeit > parameter.startzeit
-     *
-     * Beispiel:
-     * - Einsatz: 10:00-12:00
-     * - Geprüfter Zeitraum: 11:00-13:00
-     * - Ergebnis: Überschneidung erkannt (11:00-12:00)
+     * <ul>
+     * <li>Einsatz.startzeit &lt; parameter.endzeit UND</li>
+     * <li>Einsatz.endzeit &gt; parameter.startzeit</li>
+     * </ul>
+     * <p>
+     * Beispiel: Einsatz 10:00-12:00, Geprüfter Zeitraum 11:00-13:00,
+     * Ergebnis: Überschneidung erkannt (11:00-12:00)
      *
      * @param helfer Der Helfer, für den Konflikte geprüft werden
      * @param startzeit Start des zu prüfenden Zeitraums

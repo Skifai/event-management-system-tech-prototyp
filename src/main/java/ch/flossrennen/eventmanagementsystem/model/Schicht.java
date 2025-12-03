@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * Entity für Schichten (Zeitabschnitte).
- *
+ * <p>
  * Verwendet @Getter/@Setter statt @Data um equals/hashCode-Probleme
  * mit bidirektionalen JPA-Beziehungen zu vermeiden.
  */

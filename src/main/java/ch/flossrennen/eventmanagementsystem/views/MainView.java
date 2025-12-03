@@ -10,15 +10,17 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 
 /**
  * Hauptansicht (Landing Page) der Applikation.
- *
+ * <p>
  * Diese View wird auf der Root-URL ("") angezeigt und dient als Einstiegspunkt.
  * Sie zeigt eine Übersicht aller verfügbaren Module und bietet Navigation zu:
- * - Dashboard (Übersicht und Statistiken)
- * - Ressortverwaltung (Verwaltung der Organisationsbereiche)
- * - Helferverwaltung (Verwaltung der freiwilligen Helfer)
- * - Schichtverwaltung (Zeitliche Einteilung der Veranstaltung)
- * - Einsatzplanung (Zuweisung von Helfern zu Aufgaben)
- *
+ * <ul>
+ * <li>Dashboard (Übersicht und Statistiken)</li>
+ * <li>Ressortverwaltung (Verwaltung der Organisationsbereiche)</li>
+ * <li>Helferverwaltung (Verwaltung der freiwilligen Helfer)</li>
+ * <li>Schichtverwaltung (Zeitliche Einteilung der Veranstaltung)</li>
+ * <li>Einsatzplanung (Zuweisung von Helfern zu Aufgaben)</li>
+ * </ul>
+ * <p>
  * Layout: Vertikal zentrierte Ansicht mit Titel, Untertitel und Navigationslinks
  */
 @Route("")

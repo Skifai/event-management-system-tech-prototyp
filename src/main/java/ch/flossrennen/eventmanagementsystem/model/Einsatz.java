@@ -17,18 +17,19 @@ import java.util.Set;
 
 /**
  * Entity-Klasse für einen Einsatz.
- *
+ * <p>
  * Ein Einsatz repräsentiert eine konkrete Aufgabe während einer Schicht,
  * die von einem oder mehreren Helfern eines Ressorts durchgeführt wird.
- *
+ * <p>
  * Beziehungen:
- * - ManyToOne zu Ressort (Pflicht): Jeder Einsatz gehört zu einem Ressort
- * - ManyToOne zu Schicht (optional): Einsätze können einer Schicht zugeordnet werden
- * - ManyToMany zu Helfer: Mehrere Helfer können einem Einsatz zugewiesen werden
- *
- * Datenbank-Tabelle: einsatz
- * Join-Tabelle für Helfer: einsatz_helfer
- *
+ * <ul>
+ * <li>ManyToOne zu Ressort (Pflicht): Jeder Einsatz gehört zu einem Ressort</li>
+ * <li>ManyToOne zu Schicht (optional): Einsätze können einer Schicht zugeordnet werden</li>
+ * <li>ManyToMany zu Helfer: Mehrere Helfer können einem Einsatz zugewiesen werden</li>
+ * </ul>
+ * <p>
+ * Datenbank-Tabelle: einsatz, Join-Tabelle für Helfer: einsatz_helfer
+ * <p>
  * Verwendet @Getter/@Setter statt @Data um equals/hashCode-Probleme
  * mit bidirektionalen JPA-Beziehungen zu vermeiden.
  */

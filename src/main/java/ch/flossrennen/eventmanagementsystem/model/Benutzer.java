@@ -12,7 +12,7 @@ import java.util.Objects;
 
 /**
  * Entity für Benutzer (System-Anwender).
- *
+ * <p>
  * Verwendet @Getter/@Setter statt @Data um equals/hashCode-Probleme
  * mit bidirektionalen JPA-Beziehungen zu vermeiden.
  */

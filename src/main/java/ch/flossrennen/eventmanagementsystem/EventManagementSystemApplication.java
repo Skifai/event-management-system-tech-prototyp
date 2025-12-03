@@ -5,21 +5,27 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Hauptklasse der Event Management System Applikation.
- *
+ * <p>
  * Diese Spring Boot Anwendung verwaltet Events, Ressorts, Helfer, Schichten und Einsätze.
  * Die Applikation verwendet:
- * - Spring Boot 3.x für die Backend-Infrastruktur
- * - Vaadin 24 für die Web-Oberfläche
- * - PostgreSQL als Datenbank
- * - Docker für Containerisierung
- *
+ * <ul>
+ * <li>Spring Boot 3.x für die Backend-Infrastruktur</li>
+ * <li>Vaadin 24 für die Web-Oberfläche</li>
+ * <li>PostgreSQL als Datenbank</li>
+ * <li>Docker für Containerisierung</li>
+ * </ul>
+ * <p>
  * Profile:
- * - dev (default): Entwicklung mit lokaler PostgreSQL-Datenbank auf Port 5432
- * - prod: Produktion mit optimierten Einstellungen
- *
+ * <ul>
+ * <li>dev (default): Entwicklung mit lokaler PostgreSQL-Datenbank auf Port 5432</li>
+ * <li>prod: Produktion mit optimierten Einstellungen</li>
+ * </ul>
+ * <p>
  * Start der Anwendung:
- * - Entwicklung: ./mvnw spring-boot:run
- * - Produktion: docker compose up --build
+ * <ul>
+ * <li>Entwicklung: ./mvnw spring-boot:run</li>
+ * <li>Produktion: docker compose up --build</li>
+ * </ul>
  */
 @SpringBootApplication
 public class EventManagementSystemApplication {
