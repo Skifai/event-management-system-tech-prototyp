@@ -62,12 +62,23 @@ class HelferTest {
     }
 
     @Test
-    void testHelferToString() {
-        Helfer helfer = new Helfer(1L, "Max", "Mustermann", "max@example.com", "123", null, new HashSet<>());
-        String toString = helfer.toString();
+    void testHelferEqualsBasedOnEmail() {
+        // Equals basiert nun auf Email (Business-Key)
+        Helfer helfer1 = new Helfer();
+        helfer1.setEmail("max@example.com");
+        helfer1.setVorname("Max");
 
-        assertThat(toString).contains("Max");
-        assertThat(toString).contains("Mustermann");
-        assertThat(toString).contains("max@example.com");
+        Helfer helfer2 = new Helfer();
+        helfer2.setEmail("max@example.com");
+        helfer2.setVorname("Different Name"); // Verschiedener Name, aber gleiche Email
+
+        // Beide sollten gleich sein, weil Email gleich ist
+        assertThat(helfer1).isEqualTo(helfer2);
+        assertThat(helfer1.hashCode()).isEqualTo(helfer2.hashCode());
+
+        // Verschiedene Emails -> nicht gleich
+        Helfer helfer3 = new Helfer();
+        helfer3.setEmail("different@example.com");
+        assertThat(helfer1).isNotEqualTo(helfer3);
     }
 }

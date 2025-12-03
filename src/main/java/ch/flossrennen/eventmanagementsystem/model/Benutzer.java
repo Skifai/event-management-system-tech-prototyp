@@ -4,12 +4,22 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.util.Objects;
+
+/**
+ * Entity für Benutzer (System-Anwender).
+ *
+ * Verwendet @Getter/@Setter statt @Data um equals/hashCode-Probleme
+ * mit bidirektionalen JPA-Beziehungen zu vermeiden.
+ */
 @Entity
 @Table(name = "benutzer")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Benutzer {
@@ -46,5 +56,22 @@ public class Benutzer {
     public enum Rolle {
         ADMINISTRATOR,
         RESSORTLEITER
+    }
+
+    /**
+     * Equals/HashCode basierend auf Business-Key (Benutzername ist unique).
+     * Verhindert Probleme mit Lazy Loading und bidirektionalen Beziehungen.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Benutzer benutzer = (Benutzer) o;
+        return benutzername != null && Objects.equals(benutzername, benutzer.benutzername);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(benutzername);
     }
 }

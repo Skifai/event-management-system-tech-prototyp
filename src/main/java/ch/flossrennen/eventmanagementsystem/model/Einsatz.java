@@ -6,11 +6,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -26,10 +28,14 @@ import java.util.Set;
  *
  * Datenbank-Tabelle: einsatz
  * Join-Tabelle für Helfer: einsatz_helfer
+ *
+ * Verwendet @Getter/@Setter statt @Data um equals/hashCode-Probleme
+ * mit bidirektionalen JPA-Beziehungen zu vermeiden.
  */
 @Entity
 @Table(name = "einsatz")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Einsatz {
@@ -114,5 +120,22 @@ public class Einsatz {
         IN_PLANUNG,
         VOLLSTAENDIG,
         ABGESCHLOSSEN
+    }
+
+    /**
+     * Equals/HashCode basierend auf ID.
+     * Für Entities ist ID-basierte Gleichheit meist am sichersten.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Einsatz einsatz = (Einsatz) o;
+        return id != null && Objects.equals(id, einsatz.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

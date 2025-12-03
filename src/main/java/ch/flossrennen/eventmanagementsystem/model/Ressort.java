@@ -4,15 +4,24 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Entity für Ressorts (Organisationsbereiche).
+ *
+ * Verwendet @Getter/@Setter statt @Data um equals/hashCode-Probleme
+ * mit bidirektionalen JPA-Beziehungen zu vermeiden.
+ */
 @Entity
 @Table(name = "ressort")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Ressort {
@@ -43,4 +52,21 @@ public class Ressort {
 
     @OneToMany(mappedBy = "ressort", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Einsatz> einsaetze = new HashSet<>();
+
+    /**
+     * Equals/HashCode basierend auf Business-Key (Name ist unique).
+     * Verhindert Probleme mit Lazy Loading und bidirektionalen Beziehungen.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Ressort ressort = (Ressort) o;
+        return name != null && Objects.equals(name, ressort.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
+    }
 }
