@@ -1,17 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Stop Production Mode" type="ShellConfigurationType">
-    <option name="SCRIPT_TEXT" value="#!/bin/bash&#10;echo &quot;Stopping Production containers...&quot;&#10;docker compose -f docker-compose.prod.yml down&#10;echo &quot;Production mode stopped.&quot;" />
-    <option name="INDEPENDENT_SCRIPT_PATH" value="false" />
-    <option name="SCRIPT_PATH" value="" />
-    <option name="SCRIPT_OPTIONS" value="" />
-    <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
-    <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-    <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
-    <option name="INTERPRETER_PATH" value="/bin/bash" />
-    <option name="INTERPRETER_OPTIONS" value="" />
-    <option name="EXECUTE_IN_TERMINAL" value="true" />
-    <option name="EXECUTE_SCRIPT_FILE" value="false" />
-    <envs />
+  <configuration default="false" name="Stop Production Mode" type="docker-deploy" factoryName="docker-compose.yml" server-name="Docker">
+    <deployment type="docker-compose.yml">
+      <settings>
+        <option name="sourceFilePath" value="docker-compose.yml" />
+        <option name="commandLineOptions" value="down" />
+      </settings>
+    </deployment>
     <method v="2" />
   </configuration>
 </component>

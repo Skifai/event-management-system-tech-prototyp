@@ -1,14 +1,17 @@
-# Docker Compose file for database containers only
-# This file manages PostgreSQL containers independently from application Run Configurations
-# 
-# Usage:
-#   Start databases:  docker compose -f docker-compose.db.yml up -d
-#   Stop databases:   docker compose -f docker-compose.db.yml down
-#   View logs:        docker compose -f docker-compose.db.yml logs -f
+# Event Management System - Database Containers Only
+# This file manages PostgreSQL containers independently from application
 #
-# Containers:
-#   - Development DB: localhost:5432 (event-management-db-container)
-#   - Production DB:  localhost:5433 (event-management-db-prod-container)
+# Usage:
+#   Start all databases:  docker compose -f docker-compose.db.yml up -d
+#   Stop all databases:   docker compose -f docker-compose.db.yml down
+#   View logs:           docker compose -f docker-compose.db.yml logs -f
+#
+# Databases:
+#   - Development DB: localhost:5432 (eventmanagement)
+#   - Test DB:        localhost:5434 (eventmanagement_test)
+#   - Production DB:  localhost:5433 (eventmanagement_prod)
+
+version: '3.8'
 
 services:
   # Development Database (port 5432)
@@ -20,6 +23,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: eventmanagement
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
     ports:
       - "5432:5432"
     volumes:
@@ -27,10 +31,34 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eventmanagement"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+
+  # Test Database (port 5434)
+  postgresdb-test:
+    image: postgres:17-alpine
+    container_name: event-management-db-test-container
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: eventmanagement_test
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5434:5432"
+    volumes:
+      - db_data_test:/var/lib/postgresql/data
+    networks:
+      - app-network-test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eventmanagement_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # Production Database (port 5433)
   postgresdb-prod:
@@ -41,6 +69,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: eventmanagement_prod
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
     ports:
       - "5433:5432"
     volumes:
@@ -48,17 +77,27 @@ services:
     networks:
       - app-network-prod
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eventmanagement_prod"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
 volumes:
   db_data_dev:
+    name: event-management-db-data-dev
+  db_data_test:
+    name: event-management-db-data-test
   db_data_prod:
+    name: event-management-db-data-prod
 
 networks:
   app-network:
+    name: event-management-network-dev
+    driver: bridge
+  app-network-test:
+    name: event-management-network-test
     driver: bridge
   app-network-prod:
+    name: event-management-network-prod
     driver: bridge

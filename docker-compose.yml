@@ -1,4 +1,8 @@
+# Event Management System - Production Docker Compose
+version: '3.8'
+
 services:
+  # PostgreSQL Database
   postgresdb:
     image: postgres:17-alpine
     container_name: event-management-db-container
@@ -7,6 +11,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: eventmanagement
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
     ports:
       - "5432:5432"
     volumes:
@@ -14,39 +19,67 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eventmanagement"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
+  # Spring Boot Application
   app:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: event-management-system:latest
     container_name: event-management-app-container
     restart: unless-stopped
     depends_on:
       postgresdb:
         condition: service_healthy
     environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: prod
+
+      # Database Configuration
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresdb:5432/eventmanagement
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+
+      # JPA Configuration
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+      # JVM Memory Settings
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75.0
+        -Xms256m
+        -Xmx512m
     ports:
-      - "8080:8080"
+      - "8080:8081"  # Host:Container (container runs on 8081 in prod mode)
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
 volumes:
   db_data:
+    name: event-management-db-data
 
 networks:
   app-network:
+    name: event-management-network
     driver: bridge

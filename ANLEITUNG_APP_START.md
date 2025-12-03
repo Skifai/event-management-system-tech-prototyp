@@ -1,294 +1,376 @@
-# Anleitung: App in IntelliJ IDEA starten
+# Anleitung: Event Management System starten
 
-Dieses Dokument beschreibt Schritt für Schritt, wie Sie das Event Management System in IntelliJ IDEA starten.
+Dieses Dokument beschreibt Schritt für Schritt, wie Sie das Event Management System starten können.
 
-## Übersicht
+## Übersicht der Start-Optionen
 
-Mit den neuen Run Configurations wird das Starten der Anwendung in IDEA deutlich einfacher:
+Es gibt drei Hauptmethoden, um das System zu starten:
 
-1. **Container-Verwaltung ist unabhängig**: Datenbank-Container werden separat von der Anwendung verwaltet
-2. **Ein-Klick-Start**: Nach erstmaliger Einrichtung nur noch ein Klick zum Starten
-3. **Keine automatische Container-Erstellung**: Klare Kontrolle über Container-Lebenszyklus
+1. **Docker Compose** (empfohlen für Production, einfachster Start)
+2. **IntelliJ IDEA** (empfohlen für Entwicklung)
+3. **Kommandozeile** (Maven + PostgreSQL)
 
-## Voraussetzungen
+## Option 1: Docker Compose (Empfohlen)
 
-Bevor Sie beginnen, stellen Sie sicher, dass folgendes installiert ist:
+Dies ist die einfachste Methode für einen vollständigen Production-Start mit GraalVM Native Image.
 
-- [ ] IntelliJ IDEA (Community oder Ultimate Edition)
+### Voraussetzungen
+- [ ] Docker Desktop installiert und läuft
+- [ ] Git installiert (zum Klonen des Repositories)
+
+### Schritte
+
+```bash
+# 1. Repository klonen (falls noch nicht geschehen)
+git clone <repository-url>
+cd event-management-system-tech-prototyp
+
+# 2. Container starten (baut automatisch das GraalVM Native Image)
+docker compose up --build
+```
+
+**Wichtig:**
+- Der erste Build dauert 5-15 Minuten (GraalVM Native Image Kompilierung)
+- Nachfolgende Starts sind deutlich schneller
+- Die Anwendung ist unter http://localhost:8080 erreichbar
+- PostgreSQL läuft auf Port 5432
+
+**Container stoppen:**
+```bash
+docker compose down
+
+# Mit Datenlöschung:
+docker compose down -v
+```
+
+## Option 2: IntelliJ IDEA (Empfohlen für Entwicklung)
+
+Für Entwicklung mit Hot-Reload und Debugging-Support.
+
+### Voraussetzungen
+- [ ] IntelliJ IDEA (Community oder Ultimate)
 - [ ] Docker Desktop läuft
 - [ ] Java 21 in IDEA konfiguriert
-- [ ] Projekt ist in IDEA geöffnet und Maven-Import abgeschlossen
+- [ ] Projekt in IDEA geöffnet und Maven-Import abgeschlossen
 
-## Erstmalige Einrichtung
+### Erstmalige Einrichtung
 
-### Schritt 1: Docker Desktop starten
+#### Schritt 1: Docker Desktop starten
 
-Stellen Sie sicher, dass Docker Desktop läuft:
-
+Prüfen Sie, ob Docker läuft:
 ```bash
 docker ps
 ```
 
-Wenn dieser Befehl ohne Fehler ausgeführt wird, ist Docker bereit.
+#### Schritt 2: Datenbank-Container starten
 
-### Schritt 2: Datenbank-Container starten
-
-**Option A: Über IDEA Run Configuration (empfohlen)**
-
-1. In IDEA: Run Configuration Dropdown öffnen (oben rechts)
+**In IntelliJ IDEA:**
+1. Run Configuration Dropdown öffnen (oben rechts)
 2. **"Start Databases"** auswählen
 3. Run-Button (▶️) klicken
-4. Docker Compose startet die Container automatisch
 
-> 💡 Diese Run Configuration verwendet Docker Compose direkt (kein Bash-Wrapper mehr)
-
-**Option B: Über Kommandozeile**
-
+**Alternative über Kommandozeile:**
 ```bash
-cd /pfad/zum/projekt
 docker compose -f docker-compose.db.yml up -d
 ```
 
-**Was passiert?**
-- Development DB Container wird gestartet (Port 5432)
-- Production DB Container wird gestartet (Port 5433)
-- Container laufen nun im Hintergrund
-- Sie bleiben aktiv, auch wenn IDEA geschlossen wird
+**Was passiert:**
+- Zwei PostgreSQL Container werden gestartet:
+  - Development DB auf Port 5432
+  - Production DB auf Port 5433
+- Container laufen im Hintergrund
+- Bleiben aktiv, auch wenn IDEA geschlossen wird
 
-**Prüfen ob Container laufen:**
+**Container-Status prüfen:**
 ```bash
 docker ps | grep event-management-db
 ```
 
-Sie sollten zwei Container sehen:
-- `event-management-db-container` (Dev, Port 5432)
-- `event-management-db-prod-container` (Prod, Port 5433)
+#### Schritt 3: Anwendung starten
 
-### Schritt 3: Anwendung starten
+1. Run Configuration **"Development Mode"** auswählen
+2. Run-Button (▶️) klicken oder `Shift+F10`
+3. Warten bis "Started EventManagementSystemApplication" erscheint
+4. Browser öffnet automatisch: http://localhost:8080
 
-1. In IDEA: Run Configuration Dropdown öffnen
-2. **"Development Mode"** auswählen
-3. Run-Button (▶️) klicken **ODER** `Shift+F10` drücken
-4. Warten bis "Started EventManagementSystemApplication" im Log erscheint
-5. Browser öffnet automatisch: http://localhost:8080
+**Fertig!** Die Anwendung läuft jetzt mit:
+- Hot-Reload (Spring Boot DevTools)
+- SQL Debug-Logs
+- Automatisch geladenen Testdaten
+- Vaadin Development Mode
 
-**Fertig!** Die Anwendung läuft jetzt.
+### Tägliche Nutzung
 
-## Tägliche Nutzung
+Nach der erstmaligen Einrichtung:
 
-Nach der erstmaligen Einrichtung ist es noch einfacher:
-
-### Morgens / Bei erneutem Start
-
-1. **Docker Desktop starten** (falls nicht automatisch gestartet)
-2. **Container prüfen** (optional):
+1. **Docker Desktop starten** (falls nicht läuft)
+2. **Container prüfen** (optional - sollten noch laufen):
    ```bash
    docker ps | grep event-management-db
    ```
-   - Wenn Container laufen → direkt zu Schritt 3
-   - Wenn Container nicht laufen → Run Config "Start Databases" ausführen
-3. **Anwendung starten**: Run Config "Development Mode" ausführen
-
-> 💡 **Tipp**: Die Datenbank-Container müssen normalerweise nur einmal gestartet werden und bleiben dann im Hintergrund aktiv. Sie überleben IDEA-Neustarts und sogar Computer-Neustarts (sofern Docker läuft).
-
-### Entwickeln mit Hot-Reload
-
-Die Development Mode Run Configuration aktiviert Spring Boot DevTools:
-
-- Änderungen an Java-Klassen → Automatischer Reload
-- Änderungen an Vaadin Views → Automatischer Reload
-- Änderungen an Properties → Manueller Restart erforderlich
-
-Einfach Code ändern, speichern, und die Anwendung aktualisiert sich automatisch!
+3. **Anwendung starten**: "Development Mode" Run Configuration
 
 ### Debugging
 
-1. Statt Run-Button (▶️) den Debug-Button (🐞) verwenden
-2. Breakpoints in Code setzen
-3. Debugger stoppt an Breakpoints
-4. Normale Debug-Features von IDEA nutzen
+1. Debug-Button (🐞) statt Run-Button verwenden
+2. Breakpoints setzen
+3. Debugging wie gewohnt in IDEA
 
-## Production Mode testen
+### Production Mode lokal testen
 
-Wenn Sie Production-Einstellungen testen möchten:
+Um Production-Einstellungen zu testen:
 
-1. **Voraussetzung**: Datenbank-Container laufen bereits (siehe Schritt 2 oben)
-2. Run Configuration **"Production Mode (Local)"** auswählen
-3. Run-Button klicken
-4. App verfügbar auf: http://localhost:8081
+1. Run Configuration **"Production Mode (Local)"** auswählen
+2. Run-Button klicken
+3. App verfügbar auf: http://localhost:8081 (anderer Port!)
 
-**Unterschiede zu Development Mode:**
-- Läuft auf Port 8081 (statt 8080)
-- Verwendet Production-DB auf Port 5433
+**Unterschiede:**
+- Port 8081 statt 8080
+- Production-DB auf Port 5433
 - Kein Hot-Reload
-- Minimal Logging
+- Minimales Logging
 - Keine Testdaten
 
-## Container stoppen (optional)
+## Option 3: Kommandozeile mit Maven
 
-Container können laufen bleiben, aber falls Sie sie stoppen möchten:
+Für lokale Entwicklung ohne IDEA.
 
-**Option A: Über IDEA**
-- Run Configuration **"Stop Databases"** ausführen
+### Voraussetzungen
+- [ ] Java 21 installiert
+- [ ] Maven installiert (oder nutzen Sie `./mvnw`)
+- [ ] Docker Desktop läuft
 
-**Option B: Über Kommandozeile**
+### Schritte
+
 ```bash
-docker compose -f docker-compose.db.yml down
+# 1. Datenbank starten
+docker compose -f docker-compose.db.yml up -d
+
+# 2. Anwendung im Development Mode starten
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-**Container UND Daten löschen:**
+Die Anwendung ist dann unter http://localhost:8080 erreichbar.
+
+**Production Build erstellen:**
 ```bash
-docker compose -f docker-compose.db.yml down -v
+# JAR mit Vaadin Production Build
+./mvnw clean package -Pproduction
+
+# JAR ausführen
+java -jar -Dspring.profiles.active=prod target/event-management-system-*.jar
 ```
-⚠️ Dies löscht alle Daten in den Datenbanken!
+
+## Verfügbare Profile
+
+Das System unterstützt zwei Profile:
+
+| Profil | Port | Datenbank | Testdaten | Hot-Reload | Verwendung |
+|--------|------|-----------|-----------|------------|------------|
+| **dev** | 8080 | localhost:5432 | ✅ Ja | ✅ Ja | Entwicklung |
+| **prod** | 8081 | localhost:5433 | ❌ Nein | ❌ Nein | Production |
+
+## Testdaten
+
+Im **Development Mode** werden automatisch Testdaten geladen:
+- 5 Ressorts (Küche, Bar, Sicherheit, Technik, Dekoration)
+- 15 Helfer mit realistischen Daten
+- 3 Schichten (Morgen, Mittag, Abend)
+- 13 Einsätze über alle Schichten verteilt
+
+Im **Production Mode** sind Testdaten deaktiviert.
 
 ## Häufige Probleme
 
 ### "PostgreSQL container is not running"
 
-**Problem**: Anwendung startet, aber findet keine Datenbank
+**Lösung:**
+```bash
+# Container-Status prüfen
+docker ps | grep event-management-db
 
-**Lösung**:
-1. Prüfen ob Container laufen: `docker ps | grep event-management-db`
-2. Falls nicht: Run Config "Start Databases" ausführen
-3. Anwendung neu starten
+# Falls nicht läuft, Container starten
+docker compose -f docker-compose.db.yml up -d
+
+# Anwendung neu starten
+```
 
 ### "Port 5432 already in use"
 
-**Problem**: Ein anderer Dienst verwendet bereits den Port
-
-**Lösung**:
+**Lösung:**
 ```bash
-# Prüfen was auf Port läuft
+# Prüfen was Port verwendet
+# Windows:
+netstat -ano | findstr :5432
+
+# Linux/Mac:
 lsof -i :5432
 
-# Falls lokaler PostgreSQL läuft, stoppen
-sudo service postgresql stop
-
-# Falls anderer Container läuft
-docker ps
-docker stop <container-id>
+# Lokalen PostgreSQL stoppen (falls installiert)
+# Windows: Service Manager → PostgreSQL stoppen
+# Linux: sudo service postgresql stop
+# Mac: brew services stop postgresql
 ```
 
 ### "Docker is not available"
 
-**Problem**: Docker Desktop läuft nicht
-
-**Lösung**:
+**Lösung:**
 1. Docker Desktop starten
-2. Warten bis Docker vollständig gestartet ist
-3. Testen mit: `docker ps`
-4. Dann Container und App starten
+2. Warten bis vollständig gestartet
+3. Mit `docker ps` testen
+4. Container und App neu starten
 
-### Container laufen, aber Verbindung schlägt fehl
+### Container läuft, aber Verbindung schlägt fehl
 
-**Lösung**:
+**Lösung:**
 ```bash
-# Container Logs prüfen
+# Container-Logs prüfen
 docker logs event-management-db-container
 
 # Container neu starten
 docker restart event-management-db-container
 
-# Auf Gesundheit warten (ca. 5-10 Sekunden)
-# Dann App neu starten
+# 5-10 Sekunden warten, dann App neu starten
 ```
+
+### Erster Docker Build dauert sehr lange
+
+**Normal!** Der erste Build mit GraalVM Native Image dauert 5-15 Minuten. Dies ist eine einmalige Kompilierung. Nachfolgende Starts sind in unter 1 Sekunde.
 
 ## Datenbank-Zugriff
 
-Falls Sie direkt auf die Datenbank zugreifen möchten:
+### Development Database (Port 5432)
 
-### Development Database
-
+**Via Docker:**
 ```bash
-# Via psql
 docker exec -it event-management-db-container psql -U postgres -d eventmanagement
-
-# Oder in IDEA: Database Tool
-# Host: localhost
-# Port: 5432
-# Database: eventmanagement
-# User: postgres
-# Password: postgres
 ```
 
-### Production Database
+**Via IDEA Database Tool oder DBeaver:**
+- Host: `localhost`
+- Port: `5432`
+- Database: `eventmanagement`
+- User: `postgres`
+- Password: `postgres`
 
+### Production Database (Port 5433)
+
+**Via Docker:**
 ```bash
-# Via psql
 docker exec -it event-management-db-prod-container psql -U postgres -d eventmanagement_prod
-
-# Oder in IDEA: Database Tool
-# Host: localhost
-# Port: 5433
-# Database: eventmanagement_prod
-# User: postgres
-# Password: postgres
 ```
 
-## Zusammenfassung der Run Configurations
+**Via IDEA Database Tool oder DBeaver:**
+- Host: `localhost`
+- Port: `5433`
+- Database: `eventmanagement_prod`
+- User: `postgres`
+- Password: `postgres`
+
+## IntelliJ IDEA Run Configurations
+
+Übersicht der verfügbaren Run Configurations:
 
 | Run Configuration | Zweck | Wann verwenden |
 |------------------|-------|----------------|
-| **Start Databases** | Startet DB-Container | Einmalig oder nach Computer-Neustart |
+| **Start Databases** | Startet PostgreSQL Container | Einmalig oder nach Neustart |
 | **Development Mode** | Startet App im Dev-Modus | Tägliche Entwicklung |
-| **Production Mode (Local)** | Startet App im Prod-Modus | Prod-Settings testen |
-| **Production Mode (Docker)** | Vollständiger Docker-Stack | GraalVM Native Image testen |
-| **Stop Databases** | Stoppt DB-Container | Aufräumen (optional) |
-| **Stop Production Mode** | Stoppt Docker-Prod-Stack | Nach Prod-Docker-Test |
-| **Build Production JAR** | Baut JAR-Datei | Deployment vorbereiten |
+| **Production Mode (Local)** | Startet App im Prod-Modus | Prod-Settings lokal testen |
+| **Production Mode (Docker)** | Vollständiger Docker Stack | GraalVM Native Image testen |
+| **Stop Databases** | Stoppt DB-Container | Container aufräumen |
 
-## Weiterführende Dokumentation
+Details zu den Run Configurations finden Sie in `.idea/runConfigurations/README.md`.
 
-- **Detaillierte IDEA-Dokumentation**: [IDEA_SETUP.md](IDEA_SETUP.md)
-- **Docker-Dokumentation**: [DOCKER.md](DOCKER.md)
-- **Haupt-README**: [README.md](README.md)
-- **Run Config Details**: [.idea/runConfigurations/README.md](.idea/runConfigurations/README.md)
+## Checkliste: Erster Start
 
-## Checkliste: Erste Schritte
+Für den ersten Start folgen Sie dieser Checkliste:
 
-Folgen Sie dieser Checkliste für den ersten Start:
+**Docker Compose Methode:**
+- [ ] Docker Desktop läuft
+- [ ] Repository geklont
+- [ ] `docker compose up --build` ausgeführt
+- [ ] Warten (5-15 Min beim ersten Build)
+- [ ] Browser öffnet http://localhost:8080
+- [ ] Login-Seite wird angezeigt
 
+**IntelliJ IDEA Methode:**
 - [ ] Docker Desktop läuft
 - [ ] Projekt in IDEA geöffnet
 - [ ] Maven-Import abgeschlossen
-- [ ] Java 21 in IDEA konfiguriert
+- [ ] Java 21 konfiguriert
 - [ ] Run Config "Start Databases" ausgeführt
-- [ ] Container laufen (geprüft mit `docker ps`)
+- [ ] Container laufen (`docker ps` prüfen)
 - [ ] Run Config "Development Mode" ausgeführt
 - [ ] Browser öffnet http://localhost:8080
-- [ ] App läuft und zeigt Login-Seite
+- [ ] App zeigt Login-Seite
 
-**Herzlichen Glückwunsch!** Sie haben das Event Management System erfolgreich gestartet! 🎉
+**Herzlichen Glückwunsch!** Das Event Management System läuft! 🎉
 
 ## Quick Reference
 
-### Ein-Befehl-Start (nach Einrichtung)
-
-Wenn Container bereits laufen:
-1. IDEA öffnen
-2. "Development Mode" auswählen
-3. `Shift+F10` drücken
-4. Fertig!
-
-### Container-Status prüfen
+### Container-Befehle
 
 ```bash
-# Zeigt laufende Container
+# Status prüfen
 docker compose -f docker-compose.db.yml ps
 
-# Zeigt Container-Logs
+# Logs anzeigen
 docker compose -f docker-compose.db.yml logs -f
+
+# Container stoppen
+docker compose -f docker-compose.db.yml down
+
+# Container und Daten löschen
+docker compose -f docker-compose.db.yml down -v
+
+# Container neu starten
+docker compose -f docker-compose.db.yml restart
 ```
 
-### Alles zurücksetzen
+### Maven-Befehle
 
 ```bash
-# Container stoppen und Daten löschen
+# Development Mode
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Production JAR bauen
+./mvnw clean package -Pproduction
+
+# Tests ausführen
+./mvnw test
+
+# Test Coverage Report
+./mvnw clean test jacoco:report
+```
+
+### URL-Übersicht
+
+- **Development**: http://localhost:8080
+- **Production (lokal)**: http://localhost:8081
+- **Health Check**: http://localhost:8080/actuator/health
+- **PostgreSQL Dev**: localhost:5432
+- **PostgreSQL Prod**: localhost:5433
+
+## Weitere Dokumentation
+
+- **Haupt-README**: [README.md](README.md) - Vollständige Projektdokumentation
+- **IntelliJ Run Configs**: `.idea/runConfigurations/README.md` - Detaillierte Run Configuration Dokumentation
+
+## Support
+
+Bei Problemen:
+1. Prüfen Sie die "Häufige Probleme" Sektion oben
+2. Prüfen Sie die Container-Logs: `docker logs event-management-db-container`
+3. Prüfen Sie die Anwendungs-Logs in IDEA oder Terminal
+
+**Alles zurücksetzen:**
+```bash
+# Alle Container stoppen und Daten löschen
 docker compose -f docker-compose.db.yml down -v
+docker compose down -v
 
 # Container neu starten
 docker compose -f docker-compose.db.yml up -d
 
-# In IDEA: Development Mode neu starten
+# Anwendung neu starten
 ```
