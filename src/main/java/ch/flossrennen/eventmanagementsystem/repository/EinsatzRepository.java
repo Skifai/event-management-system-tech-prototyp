@@ -22,6 +22,23 @@ import java.util.List;
 public interface EinsatzRepository extends JpaRepository<Einsatz, Long> {
 
     /**
+     * Findet alle Einsätze mit eagerly geladenen Ressorts, Helfern und Schichten.
+     *
+     * @return Liste aller Einsätze mit geladenen Beziehungen
+     */
+    @Query("SELECT DISTINCT e FROM Einsatz e LEFT JOIN FETCH e.ressort LEFT JOIN FETCH e.schicht LEFT JOIN FETCH e.zugewieseneHelfer")
+    List<Einsatz> findAllWithRessortAndHelfer();
+
+    /**
+     * Findet alle Einsätze eines bestimmten Ressorts mit eagerly geladenen Helfern und Schichten.
+     *
+     * @param ressort Das Ressort, nach dem gesucht wird
+     * @return Liste aller Einsätze des Ressorts mit geladenen Helfern und Schichten
+     */
+    @Query("SELECT DISTINCT e FROM Einsatz e LEFT JOIN FETCH e.schicht LEFT JOIN FETCH e.zugewieseneHelfer WHERE e.ressort = :ressort")
+    List<Einsatz> findByRessortWithHelfer(@Param("ressort") Ressort ressort);
+
+    /**
      * Findet alle Einsätze eines bestimmten Ressorts.
      * Spring Data JPA generiert die Query automatisch basierend auf dem Methodennamen.
      *

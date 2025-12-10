@@ -15,8 +15,9 @@ public class HelferService {
     
     private final HelferRepository helferRepository;
     
+    @Transactional(readOnly = true)
     public List<Helfer> findAll() {
-        return helferRepository.findAll();
+        return helferRepository.findAllWithRessort();
     }
     
     public Optional<Helfer> findById(Long id) {

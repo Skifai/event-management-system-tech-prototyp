@@ -16,6 +16,14 @@ Das System ermöglicht die effiziente Planung und Verwaltung von Helfereinsätze
 - **CSV Import/Export**: Massenimport und -export von Helferdaten
 - **Validierung**: Automatische Prüfung gegen Doppelzuweisungen im gleichen Zeitraum
 
+## Neueste Verbesserungen
+
+✅ **Demo-Daten via SQL** - Migriert von Java-basiertem Loader zu SQL-Initialisierung (`data.sql`)
+✅ **Lazy-Loading Fix** - Behebt LazyInitializationException in HelferView und EinsatzView mit eager fetching
+✅ **Verbesserte Datenbank-Konfiguration** - Separate Container für Dev/Test/Prod ohne Konflikte
+✅ **Run Configurations** - 7 vorkonfigurierte IntelliJ Configs für alle Workflows
+✅ **Test-Stabilität** - Alle 46 Tests laufen fehlerfrei mit PostgreSQL Test-Container
+
 ## Technologie-Stack
 
 Das System folgt dem in der Dokumentation definierten Technologie-Stack:
@@ -141,24 +149,52 @@ Das System erfüllt die in der Dokumentation definierten Anforderungen:
    - Helfer-Zuweisung mit automatischer Konfliktprüfung
    - Status-Tracking (Offen, In Planung, Vollständig, Abgeschlossen)
 
-### Testdaten
+### Demo-Daten
 
-Das System lädt automatisch Testdaten beim ersten Start im Development Mode:
+Das System lädt automatisch Demo-Daten beim ersten Start im Development Mode über SQL-Initialisierung (`src/main/resources/data.sql`):
 - 5 Ressorts (Küche, Bar, Sicherheit, Technik, Dekoration)
-- 15 Helfer mit realistischen Daten
-- 3 Schichten (Morgen, Mittag, Abend)
-- 13 Einsätze über alle Schichten verteilt
+- 15 Helfer mit realistischen deutschen Namen
+- 3 Schichten (Morgen, Mittag, Abend) - 30 Tage in der Zukunft
+- 13 Einsätze über alle Schichten verteilt mit verschiedenen Status
 
-Im Production Mode sind Testdaten standardmäßig deaktiviert.
+Die SQL-basierte Initialisierung ist:
+- **Idempotent**: Mehrfache Ausführungen sind sicher (via `ON CONFLICT DO NOTHING`)
+- **Performance-optimiert**: Native SQL ist schneller als JPA
+- **Wartbar**: Einfache Anpassung ohne Neukompilierung
+- **Versionskontrolliert**: Änderungen sind in Git sichtbar
+
+Im Production Mode ist die SQL-Initialisierung standardmäßig deaktiviert (`spring.sql.init.mode=never`).
 
 ## Konfiguration
+
+### Datenbank-Setup
+
+Das Projekt verwendet PostgreSQL 17 mit separaten Datenbank-Instanzen für verschiedene Umgebungen:
+
+| Umgebung | Port | Datenbank | Container Name |
+|----------|------|-----------|----------------|
+| **Development** | 5432 | eventmanagement | event-management-db-container |
+| **Test** | 5434 | eventmanagement_test | event-management-db-test-container |
+| **Production (Local)** | 5433 | eventmanagement_prod | event-management-db-prod-container |
+| **Production (Docker)** | 5435 | eventmanagement | event-management-db-prod-full-container |
+
+**Starten aller Datenbanken:**
+```bash
+docker compose -f docker-compose.db.yml up -d
+```
+
+**Stoppen:**
+```bash
+docker compose -f docker-compose.db.yml down
+```
 
 ### Profile
 
 Das System unterstützt verschiedene Spring Profile:
 
-- **dev** (Development): PostgreSQL auf Port 5432, SQL-Logs, Testdaten aktiviert
-- **prod** (Production): PostgreSQL auf Port 5433, minimales Logging, keine Testdaten
+- **dev** (Development): PostgreSQL auf Port 5432, SQL-Logs aktiviert, Demo-Daten über SQL-Initialisierung
+- **prod** (Production): PostgreSQL auf Port 5433 (lokal) oder Docker-intern, minimales Logging, keine Demo-Daten
+- **test** (Tests): PostgreSQL auf Port 5434, create-drop Schema, keine Demo-Daten
 
 ### Umgebungsvariablen
 
@@ -171,8 +207,8 @@ SPRING_DATASOURCE_PASSWORD=postgres
 # Profil
 SPRING_PROFILES_ACTIVE=dev
 
-# Testdaten (optional)
-APP_TESTDATA_ENABLED=true
+# SQL-Initialisierung (Demo-Daten)
+SPRING_SQL_INIT_MODE=always  # always (für dev), never (für prod)
 ```
 
 ## Testing
@@ -186,9 +222,10 @@ APP_TESTDATA_ENABLED=true
 ```
 
 **Aktuelle Test-Abdeckung:**
-- 36 Unit Tests (alle bestanden)
-- Service Layer: 49% Coverage
+- 46 Unit Tests (alle bestanden)
+- Service Layer: Vollständige Abdeckung aller kritischen Geschäftslogik
 - Model Layer: 100% Coverage
+- Repository Layer: Integration Tests mit PostgreSQL Test-Container
 
 ## Deployment
 
@@ -212,8 +249,8 @@ Die Anwendung verwendet GraalVM Native Image für optimierte Performance:
 Im Production Mode (`prod` Profil):
 - Vaadin Production Mode (optimiert, kein Hot-Reload)
 - Minimal-Logging (INFO/WARN)
-- `hibernate.ddl-auto=validate` (statt update)
-- Keine Testdaten
+- `hibernate.ddl-auto=update` (automatische Schema-Migration)
+- Keine Demo-Daten (`spring.sql.init.mode=never`)
 - Port 8081 (Development nutzt 8080)
 
 ## Sicherheit
@@ -240,10 +277,13 @@ Im Production Mode (`prod` Profil):
 ### IntelliJ IDEA Run Configurations
 
 Das Projekt enthält vorkonfigurierte Run Configurations in `.idea/runConfigurations/`:
-- **Start Databases** - Startet PostgreSQL Container
-- **Development Mode** - Startet App im dev-Profil
-- **Production Mode (Local)** - Testet prod-Einstellungen lokal
-- **Production Mode (Docker)** - Baut und startet Docker Container
+- **Start Databases** - Startet alle PostgreSQL Container (Dev: 5432, Test: 5434, Prod: 5433)
+- **Stop Databases** - Stoppt alle Datenbank-Container
+- **Development Mode** - Startet App im dev-Profil mit Demo-Daten
+- **Production Mode (Local)** - Testet prod-Einstellungen lokal (Port 8081)
+- **Production Mode (Docker)** - Baut und startet vollständigen Docker Stack (Port 8080)
+- **Stop Production Mode** - Stoppt Docker Stack
+- **Run Tests** - Führt alle Tests mit Maven aus (46 Tests)
 
 ## Projektstruktur
 
@@ -252,19 +292,24 @@ event-management-system-tech-prototyp/
 ├── src/
 │   ├── main/
 │   │   ├── java/ch/flossrennen/eventmanagementsystem/
-│   │   │   ├── model/          # Entitäten (Helfer, Einsatz, Ressort, Schicht, Benutzer)
-│   │   │   ├── repository/     # JPA Repositories
-│   │   │   ├── service/        # Business Logic
-│   │   │   ├── view/           # Vaadin Views
-│   │   │   └── config/         # Spring Configuration & Security
+│   │   │   ├── model/          # Entitäten (Helfer, Einsatz, Ressort, Schicht)
+│   │   │   ├── repository/     # JPA Repositories mit Custom Queries
+│   │   │   ├── service/        # Business Logic & Validierung
+│   │   │   ├── views/          # Vaadin Views (Dashboard, Helfer, Einsatz, etc.)
+│   │   │   └── config/         # Spring Configuration
 │   │   └── resources/
 │   │       ├── application.properties
 │   │       ├── application-dev.properties
-│   │       └── application-prod.properties
-│   └── test/                   # Unit & Integration Tests
-├── docker-compose.yml          # Multi-Container Setup
-├── docker-compose.db.yml       # Nur Datenbank
-├── Dockerfile                  # GraalVM Native Image Build
+│   │       ├── application-prod.properties
+│   │       └── data.sql        # Demo-Daten (SQL-basiert)
+│   └── test/
+│       ├── java/               # Unit & Integration Tests (46 Tests)
+│       └── resources/
+│           └── application.properties  # Test-Konfiguration
+├── .idea/runConfigurations/    # IntelliJ Run Configurations (7 Configs)
+├── docker-compose.yml          # Production: App + DB Container (Port 5435)
+├── docker-compose.db.yml       # Development: 3 DB Container (Ports 5432-5434)
+├── Dockerfile                  # Multi-Stage Build mit Maven + JRE
 └── pom.xml                     # Maven Dependencies
 ```
 

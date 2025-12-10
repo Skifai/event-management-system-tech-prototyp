@@ -2,8 +2,6 @@ package ch.flossrennen.eventmanagementsystem.service;
 
 import ch.flossrennen.eventmanagementsystem.model.Einsatz;
 import ch.flossrennen.eventmanagementsystem.model.Ressort;
-import ch.flossrennen.eventmanagementsystem.model.Schicht;
-import ch.flossrennen.eventmanagementsystem.repository.EinsatzRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,16 +17,16 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
-    
-    private final EinsatzRepository einsatzRepository;
+
+    private final EinsatzService einsatzService;
     private final RessortService ressortService;
     private final SchichtService schichtService;
     private final HelferService helferService;
     
     public DashboardData getDashboardData() {
         DashboardData data = new DashboardData();
-        
-        List<Einsatz> alleEinsaetze = einsatzRepository.findAll();
+
+        List<Einsatz> alleEinsaetze = einsatzService.findAll();
         
         // Gesamtstatistiken
         data.setGesamtEinsaetze(alleEinsaetze.size());
@@ -50,7 +48,7 @@ public class DashboardService {
             RessortStats stats = new RessortStats();
             stats.setRessortName(ressort.getName());
             
-            List<Einsatz> ressortEinsaetze = einsatzRepository.findByRessort(ressort);
+            List<Einsatz> ressortEinsaetze = einsatzService.findByRessort(ressort);
             stats.setAnzahlEinsaetze(ressortEinsaetze.size());
             
             int benoetigteHelfer = ressortEinsaetze.stream()

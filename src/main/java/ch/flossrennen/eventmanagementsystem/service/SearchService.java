@@ -3,7 +3,6 @@ package ch.flossrennen.eventmanagementsystem.service;
 import ch.flossrennen.eventmanagementsystem.model.Einsatz;
 import ch.flossrennen.eventmanagementsystem.model.Helfer;
 import ch.flossrennen.eventmanagementsystem.model.Ressort;
-import ch.flossrennen.eventmanagementsystem.repository.EinsatzRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SearchService {
 
-    private final EinsatzRepository einsatzRepository;
+    private final EinsatzService einsatzService;
 
     /**
      * Sucht Einsätze nach verschiedenen optionalen Kriterien.
@@ -52,8 +51,8 @@ public class SearchService {
             Helfer helfer,
             Einsatz.EinsatzStatus status) {
 
-        // Starte mit allen Einsätzen
-        List<Einsatz> results = einsatzRepository.findAll();
+        // Starte mit allen Einsätzen (mit eager loading)
+        List<Einsatz> results = einsatzService.findAll();
 
         // Filter 1: Nach Ressort filtern
         if (ressort != null) {

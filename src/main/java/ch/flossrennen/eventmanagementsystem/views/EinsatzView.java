@@ -8,14 +8,20 @@ import ch.flossrennen.eventmanagementsystem.service.EinsatzService;
 import ch.flossrennen.eventmanagementsystem.service.HelferService;
 import ch.flossrennen.eventmanagementsystem.service.RessortService;
 import ch.flossrennen.eventmanagementsystem.service.SchichtService;
+import ch.flossrennen.eventmanagementsystem.views.components.Breadcrumbs;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -25,6 +31,7 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.format.DateTimeFormatter;
@@ -38,10 +45,10 @@ public class EinsatzView extends VerticalLayout {
     private final RessortService ressortService;
     private final SchichtService schichtService;
     private final HelferService helferService;
-    
+
     private final Grid<Einsatz> grid = new Grid<>(Einsatz.class, false);
     private final Binder<Einsatz> binder = new Binder<>(Einsatz.class);
-    
+
     private final TextArea beschreibungField = new TextArea("Beschreibung");
     private final DateTimePicker startzeitField = new DateTimePicker("Startzeit");
     private final DateTimePicker endzeitField = new DateTimePicker("Endzeit");
@@ -51,60 +58,111 @@ public class EinsatzView extends VerticalLayout {
     private final ComboBox<Ressort> ressortCombo = new ComboBox<>("Ressort");
     private final ComboBox<Schicht> schichtCombo = new ComboBox<>("Schicht (optional)");
     private final ComboBox<Einsatz.EinsatzStatus> statusCombo = new ComboBox<>("Status");
-    
-    private final Button saveButton = new Button("Speichern");
-    private final Button cancelButton = new Button("Abbrechen");
-    private final Button newButton = new Button("Neuer Einsatz");
-    
+
+    private final Button saveButton = new Button("Speichern", VaadinIcon.CHECK.create());
+    private final Button cancelButton = new Button("Abbrechen", VaadinIcon.CLOSE.create());
+    private final Button deleteButton = new Button("Löschen", VaadinIcon.TRASH.create());
+    private final Button newButton = new Button("Neuer Einsatz", VaadinIcon.PLUS.create());
+
     // Helper assignment components
     private final ComboBox<Helfer> helferCombo = new ComboBox<>("Helfer zuweisen");
-    private final Button assignButton = new Button("Zuweisen");
+    private final Button assignButton = new Button("Zuweisen", VaadinIcon.PLUS.create());
     private final Grid<Helfer> assignedHelferGrid = new Grid<>(Helfer.class, false);
-    
+
     private Einsatz currentEinsatz;
     private VerticalLayout formLayout;
 
-    public EinsatzView(EinsatzService einsatzService, RessortService ressortService, 
+    public EinsatzView(EinsatzService einsatzService, RessortService ressortService,
                       SchichtService schichtService, HelferService helferService) {
         this.einsatzService = einsatzService;
         this.ressortService = ressortService;
         this.schichtService = schichtService;
         this.helferService = helferService;
-        
+
+        addClassNames(LumoUtility.Padding.MEDIUM);
         setSizeFull();
-        
+
+        Breadcrumbs breadcrumbs = Breadcrumbs.forEinsatz();
+
+        H1 title = new H1("Einsatzverwaltung");
+        title.addClassNames(LumoUtility.Margin.Bottom.MEDIUM, LumoUtility.Margin.Top.NONE);
+
         configureGrid();
         configureForm();
         configureHelferAssignment();
-        
+
         formLayout = createFormLayout();
-        
-        add(
-            newButton,
-            formLayout,
-            grid
-        );
-        
+
+        HorizontalLayout toolbar = new HorizontalLayout(newButton);
+        toolbar.addClassNames(LumoUtility.Margin.Bottom.SMALL);
+
+        Div gridWrapper = new Div(grid);
+        gridWrapper.addClassNames(LumoUtility.Border.ALL, LumoUtility.BorderColor.CONTRAST_10,
+                                  LumoUtility.BorderRadius.MEDIUM, LumoUtility.Padding.SMALL);
+        gridWrapper.setSizeFull();
+
+        add(breadcrumbs, title, toolbar, formLayout, gridWrapper);
+        setFlexGrow(1, gridWrapper);
+
         updateList();
         closeEditor();
     }
     
     private void configureGrid() {
+        grid.addClassNames(LumoUtility.Border.NONE);
+        grid.setAllRowsVisible(true);
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMAN);
-        
-        grid.addColumn(Einsatz::getId).setHeader("ID").setAutoWidth(true);
+
+        grid.addColumn(Einsatz::getId).setHeader("ID").setWidth("70px").setFlexGrow(0);
         grid.addColumn(Einsatz::getBeschreibung).setHeader("Beschreibung").setAutoWidth(true);
-        grid.addColumn(e -> e.getStartzeit() != null ? e.getStartzeit().format(formatter) : "")
-            .setHeader("Startzeit").setAutoWidth(true);
-        grid.addColumn(e -> e.getEndzeit() != null ? e.getEndzeit().format(formatter) : "")
-            .setHeader("Endzeit").setAutoWidth(true);
-        grid.addColumn(e -> e.getRessort() != null ? e.getRessort().getName() : "")
+        grid.addColumn(e -> e.getStartzeit() != null ? e.getStartzeit().format(formatter) : "-")
+            .setHeader("Startzeit").setWidth("140px").setFlexGrow(0);
+        grid.addColumn(e -> e.getRessort() != null ? e.getRessort().getName() : "-")
             .setHeader("Ressort").setAutoWidth(true);
         grid.addColumn(e -> e.getZugewieseneHelfer().size() + "/" + e.getBenoetigteHelfer())
-            .setHeader("Helfer").setAutoWidth(true);
-        grid.addColumn(Einsatz::getStatus).setHeader("Status").setAutoWidth(true);
-        
-        grid.asSingleSelect().addValueChangeListener(event -> editEinsatz(event.getValue()));
+            .setHeader("Helfer").setWidth("90px").setFlexGrow(0);
+        grid.addColumn(new ComponentRenderer<>(einsatz -> {
+            Div badge = new Div();
+            badge.setText(einsatz.getStatus().toString());
+            badge.getStyle()
+                .set("padding", "4px 8px")
+                .set("border-radius", "4px")
+                .set("font-size", "0.85em")
+                .set("font-weight", "500");
+
+            switch (einsatz.getStatus()) {
+                case OFFEN -> badge.getStyle()
+                    .set("background", "var(--lumo-error-color-10pct)")
+                    .set("color", "var(--lumo-error-color)");
+                case IN_PLANUNG -> badge.getStyle()
+                    .set("background", "var(--lumo-warning-color-10pct)")
+                    .set("color", "var(--lumo-warning-color)");
+                case VOLLSTAENDIG -> badge.getStyle()
+                    .set("background", "var(--lumo-success-color-10pct)")
+                    .set("color", "var(--lumo-success-color)");
+                case ABGESCHLOSSEN -> badge.getStyle()
+                    .set("background", "var(--lumo-contrast-10pct)")
+                    .set("color", "var(--lumo-contrast-90pct)");
+            }
+            return badge;
+        })).setHeader("Status").setWidth("130px").setFlexGrow(0);
+
+        grid.addColumn(new ComponentRenderer<>(einsatz -> {
+            Button editBtn = new Button(VaadinIcon.EDIT.create());
+            editBtn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+            editBtn.addClickListener(e -> editEinsatz(einsatz));
+            editBtn.getElement().setAttribute("aria-label", "Bearbeiten");
+
+            Button deleteBtn = new Button(VaadinIcon.TRASH.create());
+            deleteBtn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+            deleteBtn.addClickListener(e -> confirmDelete(einsatz));
+            deleteBtn.getElement().setAttribute("aria-label", "Löschen");
+
+            HorizontalLayout actions = new HorizontalLayout(editBtn, deleteBtn);
+            actions.setSpacing(false);
+            return actions;
+        })).setHeader("Aktionen").setWidth("140px").setFlexGrow(0);
     }
     
     private void configureForm() {
@@ -166,9 +224,12 @@ public class EinsatzView extends VerticalLayout {
         
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(event -> saveEinsatz());
-        
+
         cancelButton.addClickListener(event -> closeEditor());
-        
+
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        deleteButton.addClickListener(event -> confirmDelete(currentEinsatz));
+
         newButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         newButton.addClickListener(event -> addEinsatz());
     }
@@ -196,27 +257,59 @@ public class EinsatzView extends VerticalLayout {
     
     private VerticalLayout createFormLayout() {
         VerticalLayout layout = new VerticalLayout();
-        layout.add(
-            beschreibungField,
-            new HorizontalLayout(startzeitField, endzeitField),
-            new HorizontalLayout(ortField, mittelField),
-            new HorizontalLayout(ressortCombo, schichtCombo),
-            new HorizontalLayout(benoetigteHelferField, statusCombo),
-            new HorizontalLayout(saveButton, cancelButton)
-        );
-        
+        layout.addClassNames(LumoUtility.Border.ALL, LumoUtility.BorderColor.CONTRAST_10,
+                            LumoUtility.BorderRadius.MEDIUM, LumoUtility.Padding.MEDIUM,
+                            LumoUtility.Background.BASE, LumoUtility.Margin.Bottom.MEDIUM);
+        layout.setSpacing(true);
+        layout.setVisible(false);
+
+        beschreibungField.setWidthFull();
+
+        HorizontalLayout timeRow = new HorizontalLayout(startzeitField, endzeitField);
+        timeRow.setWidthFull();
+        startzeitField.setWidthFull();
+        endzeitField.setWidthFull();
+
+        HorizontalLayout locationRow = new HorizontalLayout(ortField, mittelField);
+        locationRow.setWidthFull();
+        ortField.setWidthFull();
+        mittelField.setWidthFull();
+
+        HorizontalLayout ressortRow = new HorizontalLayout(ressortCombo, schichtCombo);
+        ressortRow.setWidthFull();
+        ressortCombo.setWidthFull();
+        schichtCombo.setWidthFull();
+
+        HorizontalLayout helferStatusRow = new HorizontalLayout(benoetigteHelferField, statusCombo);
+        helferStatusRow.setWidthFull();
+        benoetigteHelferField.setWidth("150px");
+        statusCombo.setWidthFull();
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton, deleteButton);
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        buttonLayout.setWidthFull();
+
+        layout.add(beschreibungField, timeRow, locationRow, ressortRow, helferStatusRow, buttonLayout);
+
         // Helper assignment section
         VerticalLayout helferSection = new VerticalLayout();
-        helferSection.add(
-            new H3("Helfer zuweisen"),
-            new HorizontalLayout(helferCombo, assignButton),
-            assignedHelferGrid
-        );
+        helferSection.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10,
+                                    LumoUtility.Padding.Top.MEDIUM, LumoUtility.Margin.Top.MEDIUM);
+        helferSection.setSpacing(true);
+
+        H3 helferTitle = new H3("Helfer zuweisen");
+        helferTitle.getStyle().set("margin-top", "0");
+
+        HorizontalLayout helferAssignRow = new HorizontalLayout(helferCombo, assignButton);
+        helferAssignRow.setWidthFull();
+        helferAssignRow.setAlignItems(FlexComponent.Alignment.END);
+        helferCombo.setWidthFull();
+
+        helferSection.add(helferTitle, helferAssignRow, assignedHelferGrid);
         helferSection.setVisible(false);
         helferSection.setId("helfer-section");
-        
+
         layout.add(helferSection);
-        layout.setVisible(false);
         return layout;
     }
     
@@ -232,13 +325,14 @@ public class EinsatzView extends VerticalLayout {
             currentEinsatz = einsatz;
             binder.readBean(einsatz);
             formLayout.setVisible(true);
-            
+            deleteButton.setVisible(einsatz.getId() != null);
+
             // Show helper assignment only for saved assignments
             formLayout.getChildren()
                 .filter(c -> "helfer-section".equals(c.getId().orElse("")))
                 .findFirst()
                 .ifPresent(c -> c.setVisible(einsatz.getId() != null));
-            
+
             if (einsatz.getId() != null) {
                 updateAssignedHelferGrid();
             }
@@ -336,7 +430,41 @@ public class EinsatzView extends VerticalLayout {
             assignedHelferGrid.setItems(currentEinsatz.getZugewieseneHelfer());
         }
     }
-    
+
+    private void confirmDelete(Einsatz einsatz) {
+        if (einsatz == null || einsatz.getId() == null) {
+            return;
+        }
+
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Einsatz löschen?");
+        dialog.setText("Möchten Sie den Einsatz \"" + einsatz.getBeschreibung() + "\" wirklich löschen?");
+        dialog.setCancelable(true);
+        dialog.setCancelText("Abbrechen");
+        dialog.setConfirmText("Löschen");
+        dialog.setConfirmButtonTheme("error primary");
+
+        dialog.addConfirmListener(event -> deleteEinsatz(einsatz));
+        dialog.open();
+    }
+
+    private void deleteEinsatz(Einsatz einsatz) {
+        try {
+            einsatzService.delete(einsatz.getId());
+            updateList();
+            closeEditor();
+
+            Notification notification = Notification.show("Einsatz erfolgreich gelöscht",
+                3000, Notification.Position.TOP_CENTER);
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        } catch (Exception e) {
+            log.error("Error deleting einsatz", e);
+            Notification notification = Notification.show("Fehler beim Löschen: " + e.getMessage(),
+                3000, Notification.Position.TOP_CENTER);
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
     private void updateList() {
         grid.setItems(einsatzService.findAll());
     }

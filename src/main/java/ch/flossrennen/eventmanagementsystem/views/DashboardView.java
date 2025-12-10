@@ -1,6 +1,7 @@
 package ch.flossrennen.eventmanagementsystem.views;
 
 import ch.flossrennen.eventmanagementsystem.service.DashboardService;
+import ch.flossrennen.eventmanagementsystem.views.components.Breadcrumbs;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
@@ -21,16 +22,17 @@ public class DashboardView extends VerticalLayout {
 
     public DashboardView(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
-        
+
+        addClassNames(LumoUtility.Padding.MEDIUM, LumoUtility.Background.CONTRAST_5);
         setSizeFull();
-        setPadding(true);
-        setSpacing(true);
-        
+
+        Breadcrumbs breadcrumbs = Breadcrumbs.forDashboard();
+
         H1 title = new H1("Dashboard");
-        title.addClassNames(LumoUtility.TextColor.PRIMARY);
-        
-        add(title);
-        
+        title.addClassNames(LumoUtility.Margin.Bottom.MEDIUM, LumoUtility.Margin.Top.NONE);
+
+        add(breadcrumbs, title);
+
         loadDashboardData();
     }
     
@@ -83,25 +85,34 @@ public class DashboardView extends VerticalLayout {
     private Div createStatCard(String label, String value, String color) {
         Div card = new Div();
         card.getStyle()
-            .set("border", "2px solid var(--lumo-contrast-10pct)")
-            .set("border-radius", "8px")
-            .set("padding", "20px")
+            .set("border", "1px solid var(--lumo-contrast-10pct)")
+            .set("border-radius", "12px")
+            .set("padding", "24px")
             .set("text-align", "center")
             .set("background-color", getColorForCard(color))
-            .set("flex", "1");
-        
+            .set("flex", "1")
+            .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)")
+            .set("transition", "transform 0.2s, box-shadow 0.2s");
+
+        card.getElement().setAttribute("onmouseover", "this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'");
+        card.getElement().setAttribute("onmouseout", "this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'");
+
         Paragraph labelPara = new Paragraph(label);
         labelPara.getStyle()
             .set("margin", "0")
-            .set("font-size", "0.9em")
+            .set("font-size", "0.875em")
+            .set("font-weight", "500")
+            .set("text-transform", "uppercase")
+            .set("letter-spacing", "0.5px")
             .set("color", "var(--lumo-secondary-text-color)");
-        
+
         Paragraph valuePara = new Paragraph(value);
         valuePara.getStyle()
-            .set("margin", "10px 0 0 0")
-            .set("font-size", "2em")
-            .set("font-weight", "bold");
-        
+            .set("margin", "12px 0 0 0")
+            .set("font-size", "2.5em")
+            .set("font-weight", "700")
+            .set("line-height", "1");
+
         card.add(labelPara, valuePara);
         return card;
     }
@@ -110,26 +121,30 @@ public class DashboardView extends VerticalLayout {
         Div card = new Div();
         card.getStyle()
             .set("border", "1px solid var(--lumo-contrast-10pct)")
-            .set("border-radius", "4px")
-            .set("padding", "15px")
-            .set("margin-bottom", "10px")
-            .set("background-color", "var(--lumo-base-color)");
-        
+            .set("border-radius", "8px")
+            .set("padding", "20px")
+            .set("margin-bottom", "12px")
+            .set("background-color", "var(--lumo-base-color)")
+            .set("box-shadow", "0 1px 3px rgba(0,0,0,0.08)");
+
         H2 name = new H2(stats.getRessortName());
-        name.getStyle().set("margin", "0 0 10px 0").set("font-size", "1.2em");
-        
+        name.getStyle()
+            .set("margin", "0 0 16px 0")
+            .set("font-size", "1.25em")
+            .set("font-weight", "600");
+
         HorizontalLayout statsLayout = new HorizontalLayout();
         statsLayout.setWidthFull();
         statsLayout.setSpacing(true);
-        
+
         statsLayout.add(
             createMiniStatCard("Einsätze", String.valueOf(stats.getAnzahlEinsaetze())),
             createMiniStatCard("Benötigt", String.valueOf(stats.getBenoetigteHelfer())),
             createMiniStatCard("Zugewiesen", String.valueOf(stats.getZugewieseneHelfer())),
-            createMiniStatCard("Fehlend", String.valueOf(stats.getFehlendeHelfer()), 
+            createMiniStatCard("Fehlend", String.valueOf(stats.getFehlendeHelfer()),
                               stats.getFehlendeHelfer() > 0 ? "red" : "green")
         );
-        
+
         card.add(name, statsLayout);
         return card;
     }

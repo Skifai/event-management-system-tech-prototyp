@@ -41,13 +41,13 @@ class HelferServiceTest {
     @Test
     void testFindAll() {
         List<Helfer> helfers = Arrays.asList(testHelfer);
-        when(helferRepository.findAll()).thenReturn(helfers);
+        when(helferRepository.findAllWithRessort()).thenReturn(helfers);
 
         List<Helfer> result = helferService.findAll();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getVorname()).isEqualTo("Max");
-        verify(helferRepository, times(1)).findAll();
+        verify(helferRepository, times(1)).findAllWithRessort();
     }
 
     @Test

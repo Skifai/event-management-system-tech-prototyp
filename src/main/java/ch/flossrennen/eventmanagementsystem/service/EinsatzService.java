@@ -27,11 +27,12 @@ public class EinsatzService {
     private final EinsatzRepository einsatzRepository;
     
     /**
-     * Gibt alle Einsätze zurück.
+     * Gibt alle Einsätze zurück mit eagerly geladenen Ressorts und Helfern.
      * @return Liste aller Einsätze
      */
+    @Transactional(readOnly = true)
     public List<Einsatz> findAll() {
-        return einsatzRepository.findAll();
+        return einsatzRepository.findAllWithRessortAndHelfer();
     }
     
     /**
@@ -44,12 +45,13 @@ public class EinsatzService {
     }
     
     /**
-     * Sucht alle Einsätze eines bestimmten Ressorts.
+     * Sucht alle Einsätze eines bestimmten Ressorts mit eagerly geladenen Helfern.
      * @param ressort Das Ressort
-     * @return Liste der Einsätze des Ressorts
+     * @return Liste der Einsätze des Ressorts mit geladenen Helfern
      */
+    @Transactional(readOnly = true)
     public List<Einsatz> findByRessort(Ressort ressort) {
-        return einsatzRepository.findByRessort(ressort);
+        return einsatzRepository.findByRessortWithHelfer(ressort);
     }
     
     /**

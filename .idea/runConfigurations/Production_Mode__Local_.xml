@@ -1,5 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Production Mode (Local)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <envs>
+      <env name="SPRING_DATASOURCE_URL" value="jdbc:postgresql://localhost:5433/eventmanagement_prod" />
+    </envs>
     <option name="ACTIVE_PROFILES" value="prod" />
     <module name="event-management-system" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="ch.flossrennen.eventmanagementsystem.EventManagementSystemApplication" />
